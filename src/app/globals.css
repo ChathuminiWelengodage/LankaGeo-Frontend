@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
+@theme {
+  --color-sys-bg-base: #161616;
+  --color-sys-layer-01: #262626;
+  --color-sys-layer-02: #393939;
+  --color-text-primary: #f4f4f4;
+  --color-text-secondary: #c6c6c6;
+  --color-text-muted: #8d8d8d;
+  --color-accent-primary: #0f62fe;
+  --color-accent-hover: #0043ce;
+  --color-accent-light: #78a9ff;
+  --color-ruby-alert: #da1e28;
+  --color-magenta-glow: #f96bee;
+
+  --font-sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+
+  --spacing-8: 8px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-96: 96px;
+  --spacing-128: 128px;
+
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+
+  --shadow-dual: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-elevated: 0 12px 24px -8px rgba(0,0,0,0.6), 0 4px 12px rgba(15,98,254,0.1);
+  --shadow-floating: 0 24px 48px -12px rgba(0,0,0,0.8), 0 12px 32px rgba(15,98,254,0.15);
+  --shadow-blue-glow: 0 4px 12px rgba(15,98,254,0.3);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  background-color: var(--color-sys-bg-base);
+  color: var(--color-text-primary);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  h1 {
+    @apply text-[56px] font-[300] leading-[1.05] tracking-[-1.4px];
+  }
+  h2 {
+    @apply text-[42px] font-[300] leading-[1.15] tracking-[-0.96px];
+  }
+  h3 {
+    @apply text-[24px] font-[300] leading-[1.25] tracking-[-0.32px];
+  }
+  p {
+    @apply text-[16px] font-[400] leading-[1.5];
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .btn-primary {
+    @apply h-48 px-24 bg-accent-primary text-white rounded-4 transition-all duration-200 
+           hover:bg-accent-hover hover:shadow-blue-glow active:scale-[0.98] 
+           flex items-center justify-center;
+  }
+  
+  .btn-secondary {
+    @apply h-48 px-24 bg-white/5 border border-white/15 text-text-primary rounded-4 
+           transition-all duration-200 hover:bg-white/10 active:scale-[0.98]
+           flex items-center justify-center;
+  }
+
+  .carbon-input-container {
+    @apply bg-sys-layer-01 rounded-t-4 border-b-2 border-transparent transition-all duration-200
+           focus-within:bg-sys-layer-02 focus-within:border-accent-primary flex items-center;
+  }
+
+  .carbon-input {
+    @apply w-full h-full bg-transparent px-16 outline-none text-text-primary placeholder:text-text-muted;
+  }
+
+  .card-standard {
+    @apply bg-sys-layer-01 border border-white/5 rounded-6 p-24 shadow-dual 
+           transition-all duration-300 hover:bg-sys-layer-02 hover:border-accent-primary/30 
+           hover:-translate-y-[2px] hover:shadow-floating;
+  }
 }
