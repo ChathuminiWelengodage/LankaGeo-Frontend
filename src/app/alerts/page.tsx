@@ -1,11 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import SubscriptionGuard from '@/components/auth/SubscriptionGuard';
 import { useUser } from '@/context/UserContext';
+import { apiFetch } from '@/lib/api';
 
 export default function AlertDashboard() {
   const { user } = useUser();
+  const [backendStatus, setBackendStatus] = useState<'loading' | 'connected' | 'error'>('loading');
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    async function checkConnection() {
+      try {
+        const data = await apiFetch('/api/v1/auth/me');
+        setUserData(data);
+        setBackendStatus('connected');
+      } catch (err) {
+        console.error('Backend connection failed:', err);
+        setBackendStatus('error');
+      }
+    }
+    
+    if (user) {
+      checkConnection();
+    }
+  }, [user]);
 
   return (
     <SubscriptionGuard>
@@ -13,7 +33,20 @@ export default function AlertDashboard() {
         <div className="max-w-[1152px] mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-64 gap-24">
             <div>
-              <div className="text-xs font-mono text-accent-light mb-8 tracking-widest uppercase">Operator Terminal</div>
+              <div className="text-xs font-mono text-accent-light mb-8 tracking-widest uppercase flex items-center gap-8">
+                Operator Terminal
+                {backendStatus === 'connected' && (
+                  <span className="flex items-center gap-4 text-[10px] text-emerald-400 bg-emerald-400/10 px-6 py-2 rounded-full border border-emerald-400/20">
+                    <span className="w-4 h-4 rounded-full bg-emerald-400 animate-pulse"></span>
+                    BACKEND_LINK_ACTIVE
+                  </span>
+                )}
+                {backendStatus === 'error' && (
+                  <span className="flex items-center gap-4 text-[10px] text-ruby-alert bg-ruby-alert/10 px-6 py-2 rounded-full border border-ruby-alert/20">
+                    BACKEND_LINK_OFFLINE
+                  </span>
+                )}
+              </div>
               <h1 className="mb-8">Alert Dashboard</h1>
               <p className="text-text-secondary">Welcome back, {user?.email}. Surveillance active for your assigned zones.</p>
             </div>

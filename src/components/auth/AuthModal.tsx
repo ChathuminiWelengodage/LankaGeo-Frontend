@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
+  const router = useRouter();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +40,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         });
         if (error) throw error;
         alert('Check your email for the confirmation link!');
+        onClose();
+        router.push('/alerts');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -45,6 +49,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         });
         if (error) throw error;
         onClose();
+        router.push('/alerts');
       }
     } catch (err: any) {
       setError(err.message);
