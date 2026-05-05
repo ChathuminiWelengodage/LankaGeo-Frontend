@@ -29,8 +29,8 @@ const Navbar = () => {
             <Link href="/#risks" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
               Risk Trends
             </Link>
-            <Link href="/#maps" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-              Maps
+            <Link href="/case-studies" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
+              Case Studies
             </Link>
           </div>
         </div>
