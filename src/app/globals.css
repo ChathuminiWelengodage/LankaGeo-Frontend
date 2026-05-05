@@ -13,8 +13,29 @@
   --color-ruby-alert: #da1e28;
   --color-magenta-glow: #f96bee;
 
+  /* Case Studies Design Tokens */
+  --color-surface-dim: #11131c;
+  --color-surface-bright: #373943;
+  --color-surface-container: #1d1f28;
+  --color-surface-container-low: #191b24;
+  --color-surface-container-high: #272a33;
+  --color-surface-container-highest: #32343e;
+  --color-surface-container-lowest: #0b0e16;
+  --color-on-surface: #e1e1ee;
+  --color-on-surface-variant: #c3c6d8;
+  --color-primary-container: #0f62fe;
+  --color-on-primary-container: #f3f3ff;
+  --color-outline-variant: #424656;
+  --color-mono-label: #8c90a2;
+
   --font-sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
   --font-mono: var(--font-ibm-plex-mono), monospace;
+  --font-h1: var(--font-ibm-plex-sans);
+  --font-h2: var(--font-ibm-plex-sans);
+  --font-h3: var(--font-ibm-plex-sans);
+  --font-h4: var(--font-ibm-plex-sans);
+  --font-label-md: var(--font-ibm-plex-sans);
+  --font-mono-label: var(--font-ibm-plex-mono);
 
   --spacing-8: 8px;
   --spacing-16: 16px;
