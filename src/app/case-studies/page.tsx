@@ -6,14 +6,13 @@ import { MOCK_CASE_STUDIES } from '@/lib/mock-case-studies';
 
 const categories = [
   "All Research",
-  "Urban Planning",
-  "Maritime Logistics",
-  "Environmental Monitoring",
   "Infrastructure",
+  "Environment",
   "Agriculture",
   "Energy",
   "Topography",
-  "Logistics"
+  "Logistics",
+  "Urban Planning"
 ];
 
 export default function CaseStudiesPage() {
@@ -21,7 +20,11 @@ export default function CaseStudiesPage() {
 
   const filteredCaseStudies = activeCategory === "All Research"
     ? MOCK_CASE_STUDIES
-    : MOCK_CASE_STUDIES.filter(cs => cs.category === activeCategory || (activeCategory === "Urban Planning" && cs.category === "Topography")); // Simplified mapping for demo
+    : MOCK_CASE_STUDIES.filter(cs => 
+        cs.category === activeCategory || 
+        (activeCategory === "Urban Planning" && cs.category === "Topography") ||
+        (activeCategory === "Environment" && cs.category === "Environmental Monitoring")
+      );
 
   return (
     <main className="pt-32 pb-24 px-6 md:px-12 lg:px-24 max-w-7xl mx-auto min-h-screen bg-surface-dim text-on-surface">
@@ -36,7 +39,7 @@ export default function CaseStudiesPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-12 items-center">
         <span className="text-[11px] font-mono uppercase text-text-muted mr-2">Category:</span>
-        {categories.slice(0, 5).map(category => (
+        {categories.map(category => (
           <button
             key={category}
             onClick={() => setActiveCategory(category)}
@@ -52,11 +55,24 @@ export default function CaseStudiesPage() {
       </div>
 
       {/* Case Studies Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCaseStudies.map((cs) => (
-          <CaseStudyCard key={cs.id} caseStudy={cs} />
-        ))}
-      </div>
+      {filteredCaseStudies.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCaseStudies.map((cs) => (
+            <CaseStudyCard key={cs.id} caseStudy={cs} />
+          ))}
+        </div>
+      ) : (
+        <div className="py-20 text-center border border-dashed border-outline-variant/30 rounded-lg bg-surface-container-low">
+          <span className="material-symbols-outlined text-4xl text-text-muted mb-4">search_off</span>
+          <p className="text-on-surface-variant">No case studies found for this category.</p>
+          <button 
+            onClick={() => setActiveCategory("All Research")}
+            className="mt-4 text-accent-light hover:underline text-sm font-mono"
+          >
+            RESET_FILTERS
+          </button>
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="mt-20 flex justify-center items-center gap-4">

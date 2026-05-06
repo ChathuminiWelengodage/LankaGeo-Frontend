@@ -8,13 +8,14 @@ import { apiFetch } from '@/lib/api';
 export default function AlertDashboard() {
   const { user } = useUser();
   const [backendStatus, setBackendStatus] = useState<'loading' | 'connected' | 'error'>('loading');
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<unknown>(null);
 
   useEffect(() => {
     async function checkConnection() {
       try {
         const data = await apiFetch('/api/v1/auth/me');
         setUserData(data);
+        console.log('User data loaded:', data);
         setBackendStatus('connected');
       } catch (err) {
         console.error('Backend connection failed:', err);

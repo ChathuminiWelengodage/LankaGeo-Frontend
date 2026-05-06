@@ -7,7 +7,6 @@ import { MOCK_CASE_STUDIES } from '@/lib/mock-case-studies';
 
 export default function CaseStudyDetailsPage() {
   const { id } = useParams();
-  const router = useRouter();
   
   const caseStudy = MOCK_CASE_STUDIES.find(cs => cs.id === id);
 

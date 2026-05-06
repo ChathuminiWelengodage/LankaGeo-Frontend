@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -10,6 +10,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Only create the client if we have the credentials, otherwise export a dummy or handle it in components
-export const supabase = (supabaseUrl && supabaseAnonKey) 
+export const supabase: SupabaseClient = (supabaseUrl && supabaseAnonKey) 
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : null as any; // Cast to any to avoid breaking imports, but it will fail on actual usage
+  : {
+      auth: {
+        getSession: async () => ({ data: { session: null }, error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        signInWithPassword: async () => ({ data: { user: null, session: null }, error: new Error('Supabase credentials missing') }),
+        signUp: async () => ({ data: { user: null, session: null }, error: new Error('Supabase credentials missing') }),
+        signOut: async () => ({ error: null }),
+      }
+    } as unknown as SupabaseClient;
