@@ -27,68 +27,70 @@ export default function CaseStudiesPage() {
       );
 
   return (
-    <main className="pt-32 pb-24 px-6 md:px-12 lg:px-24 max-w-7xl mx-auto min-h-screen bg-surface-dim text-on-surface">
-      {/* Page Header */}
-      <header className="mb-16">
-        <h1 className="text-[56px] leading-tight font-light tracking-tight mb-4">Case Studies</h1>
-        <p className="text-on-surface-variant max-w-2xl text-lg font-light">
-          Exploring the frontiers of geospatial intelligence. Discover how LankaGeo enables precision decision-making through high-fidelity planetary data.
-        </p>
-      </header>
+    <main className="min-h-screen bg-sys-bg-base text-text-primary">
+      <div className="pt-32 pb-96 px-24 md:px-48 max-w-[1152px] mx-auto">
+        {/* Page Header */}
+        <header className="mb-64">
+          <div className="inline-block px-12 py-4 bg-accent-primary/10 border border-accent-primary/20 rounded-4 text-[12px] font-mono font-medium text-accent-light mb-24 tracking-widest uppercase">
+            Geospatial Intelligence
+          </div>
+          <h1 className="mb-24">Case Studies</h1>
+          <p className="text-text-secondary max-w-[600px] text-lg leading-relaxed">
+            Exploring the frontiers of geospatial intelligence. Discover how LankaGeo enables precision decision-making through high-fidelity planetary data.
+          </p>
+        </header>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-12 items-center">
-        <span className="text-[11px] font-mono uppercase text-text-muted mr-2">Category:</span>
-        {categories.map(category => (
-          <button
-            key={category}
-            onClick={() => setActiveCategory(category)}
-            className={`px-4 py-1.5 text-xs font-medium rounded-sm transition-colors ${
-              activeCategory === category
-                ? 'bg-primary-container text-white'
-                : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
-            }`}
-          >
-            {category}
-          </button>
-        ))}
-      </div>
-
-      {/* Case Studies Grid */}
-      {filteredCaseStudies.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCaseStudies.map((cs) => (
-            <CaseStudyCard key={cs.id} caseStudy={cs} />
+        {/* Filters */}
+        <div className="flex flex-wrap gap-12 mb-48 items-center">
+          <span className="text-[11px] font-mono uppercase text-text-muted mr-8 tracking-widest">Filter by:</span>
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-16 py-8 text-xs font-mono uppercase tracking-tighter rounded-4 transition-all duration-200 border ${
+                activeCategory === category
+                  ? 'bg-accent-primary border-accent-primary text-white shadow-blue-glow'
+                  : 'bg-white/5 border-white/10 text-text-secondary hover:bg-white/10 hover:border-white/20'
+              }`}
+            >
+              {category}
+            </button>
           ))}
         </div>
-      ) : (
-        <div className="py-20 text-center border border-dashed border-outline-variant/30 rounded-lg bg-surface-container-low">
-          <span className="material-symbols-outlined text-4xl text-text-muted mb-4">search_off</span>
-          <p className="text-on-surface-variant">No case studies found for this category.</p>
-          <button 
-            onClick={() => setActiveCategory("All Research")}
-            className="mt-4 text-accent-light hover:underline text-sm font-mono"
-          >
-            RESET_FILTERS
+
+        {/* Case Studies Grid */}
+        {filteredCaseStudies.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCaseStudies.map((cs) => (
+              <CaseStudyCard key={cs.id} caseStudy={cs} />
+            ))}
+          </div>
+        ) : (
+          <div className="py-96 text-center border border-dashed border-white/10 rounded-8 bg-white/5">
+            <p className="text-text-muted font-mono text-sm tracking-widest mb-24">NO_RESULTS_FOUND</p>
+            <button 
+              onClick={() => setActiveCategory("All Research")}
+              className="btn-secondary mx-auto h-40 text-xs"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
+
+        {/* Pagination */}
+        <div className="mt-64 pt-48 border-t border-white/5 flex justify-center items-center gap-4">
+          <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-white/5 border border-white/10 text-text-muted cursor-not-allowed">
+            <span className="material-symbols-outlined text-sm">chevron_left</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-accent-primary text-white font-mono text-[11px]">01</button>
+            <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-white/5 border border-white/10 text-text-secondary font-mono text-[11px] hover:bg-white/10 transition-colors">02</button>
+            <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-white/5 border border-white/10 text-text-secondary font-mono text-[11px] hover:bg-white/10 transition-colors">03</button>
+          </div>
+          <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-white/5 border border-white/10 text-text-secondary hover:bg-white/10 transition-colors">
+            <span className="material-symbols-outlined text-sm">chevron_right</span>
           </button>
         </div>
-      )}
-
-      {/* Pagination */}
-      <div className="mt-20 flex justify-center items-center gap-4">
-        <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-surface-container border border-outline-variant/30 text-text-muted cursor-not-allowed">
-          <span className="material-symbols-outlined">chevron_left</span>
-        </button>
-        <div className="flex items-center gap-2">
-          <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-primary-container text-white font-mono text-[11px]">01</button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-mono text-[11px] transition-colors">02</button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-mono text-[11px] transition-colors">03</button>
-          <span className="text-text-muted px-2">...</span>
-          <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-mono text-[11px] transition-colors">12</button>
-        </div>
-        <button className="w-10 h-10 flex items-center justify-center rounded-sm bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high transition-colors">
-          <span className="material-symbols-outlined">chevron_right</span>
-        </button>
       </div>
     </main>
   );
