@@ -45,4 +45,5 @@ const CaseStudyCard: React.FC<CaseStudyCardProps> = ({ caseStudy }) => {
   );
 };
 
+
 export default CaseStudyCard;
