@@ -1,17 +1,27 @@
+import { supabase } from './supabase';
+
 /**
- * Basic API fetcher for the LankaGeo frontend.
- * Handles base URL and default headers.
+ * Utility for making API requests to the backend.
+ * Handles base URL, authentication tokens, and default headers.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${BACKEND_URL}${endpoint}`;
   
-  const headers = {
+  // Get the current session to include the JWT token
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...((options.headers as Record<string, string>) || {}),
   };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   const response = await fetch(url, {
     ...options,
@@ -20,7 +30,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `API error: ${response.status}`);
+    throw new Error(errorData.message || `API request failed with status ${response.status}`);
   }
 
   return response.json();
