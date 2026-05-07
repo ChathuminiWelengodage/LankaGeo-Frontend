@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 
 /**
  * Utility for making API requests to the backend.
+ * Handles base URL, authentication tokens, and default headers.
  */
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
