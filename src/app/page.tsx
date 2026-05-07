@@ -84,23 +84,6 @@ export default function LandingPage() {
           />
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/8 py-64 px-24 md:px-48 max-w-[1152px] mx-auto flex flex-col md:flex-row justify-between items-center gap-32">
-        <div>
-          <h3 className="text-sm font-bold mb-8 text-accent-primary">LankaGeo</h3>
-          <p className="text-[12px] text-text-muted font-mono">© 2026 LANKA GEO AGENCY INTELLIGENCE PLATFORM</p>
-        </div>
-        <div className="flex gap-24 items-center">
-          <span className="text-xs text-text-muted font-medium uppercase tracking-widest">Connect</span>
-          <div className="flex gap-16 text-xs text-text-secondary font-mono">
-            <span className="hover:text-accent-primary cursor-pointer transition-colors">Instagram</span>
-            <span className="hover:text-accent-primary cursor-pointer transition-colors">Facebook</span>
-            <span className="hover:text-accent-primary cursor-pointer transition-colors">X</span>
-            <span className="hover:text-accent-primary cursor-pointer transition-colors">Whatsapp</span>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }
