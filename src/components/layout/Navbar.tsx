@@ -1,81 +1,82 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useUser } from '@/context/UserContext';
-import AuthModal from '@/components/auth/AuthModal';
+import { usePathname } from 'next/navigation';
 
 const Navbar = () => {
-  const { user, signOut } = useUser();
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const pathname = usePathname();
+  const [prevScrollPos, setPrevScrollPos] = useState(0);
+  const [visible, setVisible] = useState(true);
 
-  const openLogin = () => {
-    setAuthMode('login');
-    setIsAuthOpen(true);
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollPos = window.scrollY;
+      
+      // Show navbar if scrolling up or at the top
+      setVisible((prevScrollPos > currentScrollPos) || currentScrollPos < 10);
+      setPrevScrollPos(currentScrollPos);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [prevScrollPos]);
 
   return (
-    <>
-      <nav className="fixed top-0 w-full z-40 bg-[#161616cc] backdrop-blur-[12px] border-b border-white/8 h-64 px-24 md:px-48 flex items-center justify-between">
-        <div className="flex items-center gap-32">
-          <Link href="/" className="text-accent-primary font-bold cursor-pointer hover:opacity-80 transition-opacity">
-            LankaGeo
+    <nav className={`fixed top-0 w-full z-50 bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 shadow-[0_4px_20px_rgba(0,0,0,0.6),0_0_10px_rgba(15,98,254,0.15)] h-64 px-24 md:px-48 flex items-center justify-between transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
+      <div className="flex items-center">
+        <Link href="/" className="text-white text-xl font-bold tracking-tight hover:opacity-90 transition-opacity">
+          LankaGeo
+        </Link>
+      </div>
+
+      <div className="flex items-center gap-32">
+        <div className="hidden md:flex items-center gap-32">
+          <Link 
+            href="/" 
+            className={`text-sm font-medium transition-colors ${
+              pathname === '/' ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Home
           </Link>
-          <div className="hidden md:flex items-center gap-24">
-            <Link href="/#analysis" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-              Live Analysis
-            </Link>
-            <Link href="/#risks" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-              Risk Trends
-            </Link>
-            <Link href="/case-studies" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-              Case Studies
-            </Link>
-          </div>
+          <Link 
+            href="/dashboard" 
+            className={`text-sm font-medium transition-colors ${
+              pathname === '/dashboard' ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Dashboard
+          </Link>
+          <Link 
+            href="/alerts" 
+            className={`text-sm font-medium transition-colors ${
+              pathname === '/alerts' ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Alerts
+          </Link>
+          <Link 
+            href="/case-studies" 
+            className={`text-sm font-medium transition-colors ${
+              pathname === '/case-studies' ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Case Studies
+          </Link>
         </div>
 
-        <div className="flex items-center gap-16">
-          {!user ? (
-            <>
-              <button 
-                onClick={openLogin}
-                className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-              >
-                Login
-              </button>
-              <Link 
-                href="/join"
-                className="btn-primary h-40 text-sm"
-              >
-                Get Alerts
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link 
-                href="/alerts"
-                className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-              >
-                My Dashboard
-              </Link>
-              <button 
-                onClick={() => signOut()}
-                className="btn-secondary h-40 text-sm"
-              >
-                Sign Out
-              </button>
-            </>
-          )}
+        <div className="flex items-center">
+          <Link 
+            href="/alerts"
+            className="bg-[#0f62fe] hover:bg-[#0043ce] text-white h-32 px-8 rounded-[4px] text-[11px] font-semibold transition-all flex items-center gap-4 shadow-blue-glow active:scale-[0.95]"
+          >
+            <span className="material-symbols-outlined text-[16px]">notifications</span>
+            Get Alerts
+          </Link>
         </div>
-      </nav>
-
-      <AuthModal 
-        isOpen={isAuthOpen} 
-        onClose={() => setIsAuthOpen(false)} 
-        initialMode={authMode}
-      />
-    </>
+      </div>
+    </nav>
   );
 };
 

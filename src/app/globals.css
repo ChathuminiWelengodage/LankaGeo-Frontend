@@ -8,10 +8,18 @@
   --color-text-secondary: #c6c6c6;
   --color-text-muted: #8d8d8d;
   --color-accent-primary: #0f62fe;
+  --color-primary: #0f62fe;
   --color-accent-hover: #0043ce;
   --color-accent-light: #78a9ff;
   --color-ruby-alert: #da1e28;
   --color-magenta-glow: #f96bee;
+
+  /* Support for existing components like Footer */
+  --color-surface-dim: #111111;
+  --color-on-surface: #f4f4f4;
+  --color-on-surface-variant: #c6c6c6;
+  --color-outline-variant: #393939;
+  --color-surface-container-high: #393939;
 
   --font-sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
   --font-mono: var(--font-ibm-plex-mono), monospace;
@@ -41,9 +49,16 @@
   --shadow-blue-glow: 0 4px 12px rgba(15,98,254,0.3);
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
 :root {
   background-color: var(--color-sys-bg-base);
   color: var(--color-text-primary);
+  overflow-x: hidden;
 }
 
 @layer base {
