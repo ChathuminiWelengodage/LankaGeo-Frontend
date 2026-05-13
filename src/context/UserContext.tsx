@@ -41,8 +41,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/';
+    try {
+      // Optional: Notify backend about logout if session exists
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        }).catch(err => console.error('Backend logout notification failed:', err));
+      }
+    } catch (error) {
+      console.error('Error during logout process:', error);
+    } finally {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    }
   };
 
   return (

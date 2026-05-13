@@ -93,7 +93,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
           <h4 className="text-sm font-medium text-text-secondary mb-24">
             {mode === 'login' 
-              ? 'Official portal for Sri Lankan satellite and terrain data.' 
+              ? 'Portal for Sri Lankan satellite and terrain data.' 
               : 'Join the Lanka Geo professional geospatial network.'}
           </h4>
 
@@ -101,7 +101,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             <div className="carbon-input-container h-48">
               <input 
                 type="email" 
-                placeholder={mode === 'login' ? 'youremail@gmail.com' : 'name@organization.com'}
+                placeholder={mode === 'login' ? 'youremail@gmail.com' : 'youremail@gmail.com'}
                 className="carbon-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

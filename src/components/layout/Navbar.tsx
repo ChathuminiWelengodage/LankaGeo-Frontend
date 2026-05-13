@@ -3,11 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useUser } from '@/context/UserContext';
+import AuthModal from '@/components/auth/AuthModal';
 
 const Navbar = () => {
   const pathname = usePathname();
+  const { user, signOut } = useUser();
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,7 +70,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-16">
           <Link 
             href="/alerts"
             className="bg-[#0f62fe] hover:bg-[#0043ce] text-white h-32 px-8 rounded-[4px] text-[11px] font-semibold transition-all flex items-center gap-4 shadow-blue-glow active:scale-[0.95]"
@@ -74,8 +78,36 @@ const Navbar = () => {
             <span className="material-symbols-outlined text-[16px]">notifications</span>
             Get Alerts
           </Link>
+
+          {user ? (
+            <div className="flex items-center gap-16 ml-8">
+              <span className="text-text-secondary text-[11px] font-medium hidden lg:inline">
+                {user.email}
+              </span>
+              <button 
+                onClick={() => signOut()}
+                className="text-text-secondary hover:text-accent-primary text-[11px] font-medium transition-colors flex items-center gap-4"
+              >
+                <span className="material-symbols-outlined text-[16px]">logout</span>
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setIsAuthModalOpen(true)}
+              className="text-text-secondary hover:text-text-primary text-[11px] font-medium transition-colors flex items-center gap-4 px-8"
+            >
+              <span className="material-symbols-outlined text-[16px]">login</span>
+              Log In
+            </button>
+          )}
         </div>
       </div>
+
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </nav>
   );
 };
