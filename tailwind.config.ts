@@ -20,10 +20,22 @@ const config: Config = {
         'accent-light': '#78a9ff',
         'ruby-alert': '#da1e28',
         'magenta-glow': '#f96bee',
+        // New UI Component Library Tokens
+        'bg-primary': 'var(--color-bg-primary)',
+        'bg-surface': 'var(--color-bg-surface)',
+        'border': 'var(--color-border)',
+        'text-main': 'var(--color-text-main)',
+        'text-muted-alt': 'var(--color-text-muted)',
+        'critical': 'var(--color-critical)',
+        'moderate': 'var(--color-moderate)',
+        'seasonal': 'var(--color-seasonal)',
+        'station': 'var(--color-station)',
+        'boundary': 'var(--color-boundary)',
       },
       fontFamily: {
         sans: ['var(--font-ibm-plex-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-ibm-plex-mono)', 'monospace'],
+        main: ['var(--font-main)'],
       },
       spacing: {
         '8': '8px',
@@ -39,12 +51,15 @@ const config: Config = {
         '4': '4px',
         '6': '6px',
         '8': '8px',
+        'md': 'var(--radius-md)',
       },
       boxShadow: {
         'dual': '0 4px 12px rgba(0,0,0,0.4)',
         'elevated': '0 12px 24px -8px rgba(0,0,0,0.6), 0 4px 12px rgba(15,98,254,0.1)',
         'floating': '0 24px 48px -12px rgba(0,0,0,0.8), 0 12px 32px rgba(15,98,254,0.15)',
         'blue-glow': '0 4px 12px rgba(15,98,254,0.3)',
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
       }
     },
   },

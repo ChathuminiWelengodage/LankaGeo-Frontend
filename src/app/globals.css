@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme.css";
 
 @theme {
   --color-sys-bg-base: #161616;
@@ -13,6 +14,23 @@
   --color-accent-light: #78a9ff;
   --color-ruby-alert: #da1e28;
   --color-magenta-glow: #f96bee;
+
+  /* New UI Component Library Tokens */
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-border: var(--color-border);
+  --color-text-main: var(--color-text-main);
+  --color-text-muted-alt: var(--color-text-muted); /* Renamed to avoid collision with existing --color-text-muted */
+  --color-critical: var(--color-critical);
+  --color-moderate: var(--color-moderate);
+  --color-seasonal: var(--color-seasonal);
+  --color-station: var(--color-station);
+  --color-boundary: var(--color-boundary);
+
+  --font-main: var(--font-main);
+  --radius-md: var(--radius-md);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
 
   /* Support for existing components like Footer */
   --color-surface-dim: #111111;
