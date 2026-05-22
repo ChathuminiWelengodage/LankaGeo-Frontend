@@ -74,9 +74,6 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
         fetchPredictions(inputValue);
         setIsDropdownOpen(true);
       }, 300);
-    } else {
-      setPredictions([]);
-      setIsDropdownOpen(false);
     }
 
     return () => {
@@ -119,7 +116,14 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setInputValue(value);
+            if (value.length <= 2) {
+              setPredictions([]);
+              setIsDropdownOpen(false);
+            }
+          }}
           placeholder="Search location in Sri Lanka..."
           className="carbon-input"
           disabled={isLoading}

@@ -3,17 +3,29 @@
 import React, { useState } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
+import FloodZoneMap from '@/components/dashboard/FloodZoneMap';
+import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function DashboardPage() {
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
 
   const handleLocationSelect = (coords: { lat: number; lng: number }) => {
     setCoordinates(coords);
+    setGeoJsonData(null); // Clear previous analysis
     console.log('Selected coordinates:', coords);
-    // In the future, this will trigger the Live Analysis request
+  };
+
+  const startAnalysis = () => {
+    setIsLoading(true);
+    // Simulate API delay
+    setTimeout(() => {
+      setGeoJsonData(MOCK_GEOJSON);
+      setIsLoading(false);
+    }, 1500);
   };
 
   return (
@@ -51,28 +63,32 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
             {/* Map Section */}
             <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group">
-              <div className="absolute inset-0 flex items-center justify-center text-text-muted">
-                {coordinates ? (
-                  <div className="text-center">
-                    <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
-                    <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
-                    <p className="text-accent-primary font-mono mt-4">
-                      {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center opacity-40">
-                    <span className="material-symbols-outlined text-[64px] mb-16">map</span>
-                    <p>Initialize monitoring by selecting a location</p>
-                  </div>
-                )}
-              </div>
+              <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} />
+              
+              {!geoJsonData && (
+                <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40 backdrop-blur-[2px]">
+                  {coordinates ? (
+                    <div className="text-center">
+                      <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
+                      <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
+                      <p className="text-accent-primary font-mono mt-4">
+                        {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center opacity-40">
+                      <span className="material-symbols-outlined text-[64px] mb-16">map</span>
+                      <p>Initialize monitoring by selecting a location</p>
+                    </div>
+                  )}
+                </div>
+              )}
               
               {/* Decorative corners */}
-              <div className="absolute top-16 left-16 w-32 h-32 border-t-2 border-l-2 border-white/10"></div>
-              <div className="absolute top-16 right-16 w-32 h-32 border-t-2 border-r-2 border-white/10"></div>
-              <div className="absolute bottom-16 left-16 w-32 h-32 border-b-2 border-l-2 border-white/10"></div>
-              <div className="absolute bottom-16 right-16 w-32 h-32 border-b-2 border-r-2 border-white/10"></div>
+              <div className="absolute top-16 left-16 w-32 h-32 border-t-2 border-l-2 border-white/10 pointer-events-none"></div>
+              <div className="absolute top-16 right-16 w-32 h-32 border-t-2 border-r-2 border-white/10 pointer-events-none"></div>
+              <div className="absolute bottom-16 left-16 w-32 h-32 border-b-2 border-l-2 border-white/10 pointer-events-none"></div>
+              <div className="absolute bottom-16 right-16 w-32 h-32 border-b-2 border-r-2 border-white/10 pointer-events-none"></div>
             </div>
 
             {/* Side Panel */}
@@ -97,11 +113,14 @@ export default function DashboardPage() {
                 </div>
                 
                 <button 
+                  onClick={startAnalysis}
                   disabled={!coordinates || isLoading}
                   className="btn-primary w-full mt-24 disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                  <span className="material-symbols-outlined mr-8 group-hover:rotate-180 transition-transform duration-500">sync</span>
-                  Start Live Analysis
+                  <span className={`material-symbols-outlined mr-8 ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'} transition-transform duration-500`}>
+                    {isLoading ? 'progress_activity' : 'sync'}
+                  </span>
+                  {isLoading ? 'Processing SAR Data...' : 'Start Live Analysis'}
                 </button>
               </div>
 
