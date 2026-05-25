@@ -52,14 +52,14 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
         componentRestrictions: { country: 'lk' },
       },
       (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        if (placesLibrary && status === placesLibrary.PlacesServiceStatus.OK && results) {
           setPredictions(results);
         } else {
           setPredictions([]);
         }
       }
     );
-  }, []);
+  }, [placesLibrary]);
 
   /**
    * Effect to handle debouncing and prediction fetching
@@ -74,9 +74,6 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
         fetchPredictions(inputValue);
         setIsDropdownOpen(true);
       }, 300);
-    } else {
-      setPredictions([]);
-      setIsDropdownOpen(false);
     }
 
     return () => {
@@ -93,14 +90,14 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
     setInputValue(prediction.description);
     setIsDropdownOpen(false);
 
-    if (placesService.current) {
+    if (placesService.current && placesLibrary) {
       placesService.current.getDetails(
         {
           placeId: prediction.place_id,
           fields: ['geometry'],
         },
         (place, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+          if (status === placesLibrary.PlacesServiceStatus.OK && place?.geometry?.location) {
             const lat = place.geometry.location.lat();
             const lng = place.geometry.location.lng();
             onLocationSelect({ lat, lng });
@@ -119,7 +116,14 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setInputValue(val);
+            if (val.length <= 2) {
+              setPredictions([]);
+              setIsDropdownOpen(false);
+            }
+          }}
           placeholder="Search location in Sri Lanka..."
           className="carbon-input"
           disabled={isLoading}

@@ -3,18 +3,52 @@
 import React, { useState } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
+import FloodMap from '@/components/dashboard/FloodMap';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function DashboardPage() {
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Mock Tile URL for Google Earth Engine flood heatmap (SCRUM-94)
+  // In a real scenario, this would come from an API after starting analysis
+  const [tileUrl, setTileUrl] = useState<string | undefined>(
+    'https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}' // Example URL (Hybrid labels as placeholder)
+  );
 
   const handleLocationSelect = (coords: { lat: number; lng: number }) => {
     setCoordinates(coords);
     console.log('Selected coordinates:', coords);
     // In the future, this will trigger the Live Analysis request
   };
+
+  const handleStartAnalysis = () => {
+    setIsLoading(true);
+    // Simulate API call to fetch flood heatmap tile URL
+    setTimeout(() => {
+      setIsLoading(false);
+      // Example heatmap overlay URL (using a colored placeholder here)
+      setTileUrl('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}');
+    }, 2000);
+  };
+
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="min-h-screen bg-sys-bg-base flex items-center justify-center p-24">
+        <div className="max-w-md w-full bg-sys-layer-01 p-32 rounded-12 border border-ruby-alert/30 shadow-dual text-center">
+          <span className="material-symbols-outlined text-ruby-alert text-[48px] mb-16">warning</span>
+          <h2 className="text-white text-[20px] font-semibold mb-8">Google Maps API Key Missing</h2>
+          <p className="text-text-secondary text-[14px] mb-24">
+            The Google Maps API key is not configured. Please add <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your <code>.env.local</code> file to enable the dashboard features.
+          </p>
+          <div className="bg-black/20 p-12 rounded-4 text-left font-mono text-[12px] text-text-muted break-all">
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <APIProvider apiKey={GOOGLE_MAPS_API_KEY} solutionChannel="GMP_GCC_placeautocomplete_v1">
@@ -51,28 +85,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
             {/* Map Section */}
             <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group">
-              <div className="absolute inset-0 flex items-center justify-center text-text-muted">
-                {coordinates ? (
-                  <div className="text-center">
-                    <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
-                    <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
-                    <p className="text-accent-primary font-mono mt-4">
-                      {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center opacity-40">
-                    <span className="material-symbols-outlined text-[64px] mb-16">map</span>
-                    <p>Initialize monitoring by selecting a location</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Decorative corners */}
-              <div className="absolute top-16 left-16 w-32 h-32 border-t-2 border-l-2 border-white/10"></div>
-              <div className="absolute top-16 right-16 w-32 h-32 border-t-2 border-r-2 border-white/10"></div>
-              <div className="absolute bottom-16 left-16 w-32 h-32 border-b-2 border-l-2 border-white/10"></div>
-              <div className="absolute bottom-16 right-16 w-32 h-32 border-b-2 border-r-2 border-white/10"></div>
+              <FloodMap center={coordinates} tileUrl={tileUrl} />
             </div>
 
             {/* Side Panel */}
@@ -98,10 +111,11 @@ export default function DashboardPage() {
                 
                 <button 
                   disabled={!coordinates || isLoading}
+                  onClick={handleStartAnalysis}
                   className="btn-primary w-full mt-24 disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
                   <span className="material-symbols-outlined mr-8 group-hover:rotate-180 transition-transform duration-500">sync</span>
-                  Start Live Analysis
+                  {isLoading ? 'Processing SAR Data...' : 'Start Live Analysis'}
                 </button>
               </div>
 
