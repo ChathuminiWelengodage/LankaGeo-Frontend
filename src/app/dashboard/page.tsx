@@ -87,7 +87,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
             {/* Map Section */}
             <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group">
-              <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} />
+              <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} tileUrl={tileUrl} />
               
               {!geoJsonData && (
                 <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40 backdrop-blur-[2px]">
