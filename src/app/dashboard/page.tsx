@@ -12,6 +12,11 @@ export default function DashboardPage() {
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
+  
+  // Mock Tile URL for Google Earth Engine flood heatmap (SCRUM-94)
+  const [tileUrl, setTileUrl] = useState<string | undefined>(
+    'https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}' // Example URL (Hybrid labels as placeholder)
+  );
 
   const handleLocationSelect = (coords: { lat: number; lng: number }) => {
     setCoordinates(coords);
@@ -24,9 +29,28 @@ export default function DashboardPage() {
     // Simulate API delay
     setTimeout(() => {
       setGeoJsonData(MOCK_GEOJSON);
+      // Example heatmap overlay URL (using a colored placeholder here)
+      setTileUrl('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}');
       setIsLoading(false);
     }, 1500);
   };
+
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="min-h-screen bg-sys-bg-base flex items-center justify-center p-24">
+        <div className="max-w-md w-full bg-sys-layer-01 p-32 rounded-12 border border-ruby-alert/30 shadow-dual text-center">
+          <span className="material-symbols-outlined text-ruby-alert text-[48px] mb-16">warning</span>
+          <h2 className="text-white text-[20px] font-semibold mb-8">Google Maps API Key Missing</h2>
+          <p className="text-text-secondary text-[14px] mb-24">
+            The Google Maps API key is not configured. Please add <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your <code>.env.local</code> file to enable the dashboard features.
+          </p>
+          <div className="bg-black/20 p-12 rounded-4 text-left font-mono text-[12px] text-text-muted break-all">
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <APIProvider apiKey={GOOGLE_MAPS_API_KEY} solutionChannel="GMP_GCC_placeautocomplete_v1">
@@ -63,7 +87,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
             {/* Map Section */}
             <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group">
-              <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} />
+              <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} tileUrl={tileUrl} />
               
               {!geoJsonData && (
                 <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40 backdrop-blur-[2px]">

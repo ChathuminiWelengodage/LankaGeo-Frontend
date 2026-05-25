@@ -4,6 +4,7 @@ import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MOCK_CASE_STUDIES } from '@/lib/mock-case-studies';
+import StaticMap from '@/components/dashboard/StaticMap';
 
 export default function CaseStudyDetailsPage() {
   const { id } = useParams();
@@ -95,6 +96,13 @@ export default function CaseStudyDetailsPage() {
                     <p className="text-3xl font-light text-text-primary tracking-tighter">{stat.value}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div className="space-y-16">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted">Geospatial_Context</h3>
+              <div className="h-[200px] w-full">
+                <StaticMap location={caseStudy.location} zoom={11} height={200} />
               </div>
             </div>
 

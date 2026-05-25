@@ -8,12 +8,13 @@ import MapToggleControls from './controls/MapToggleControls';
 interface FloodZoneMapProps {
   center: { lat: number; lng: number } | null;
   geoJsonData?: Record<string, unknown> | null;
+  tileUrl?: string;
 }
 
 const DEFAULT_CENTER = { lat: 7.8731, lng: 80.7718 }; // Center of Sri Lanka
 const DEFAULT_ZOOM = 8;
 
-export default function FloodZoneMap({ center, geoJsonData }: FloodZoneMapProps) {
+export default function FloodZoneMap({ center, geoJsonData, tileUrl }: FloodZoneMapProps) {
   const map = useMap();
   const { addGeoJson } = useFloodData(map);
   
@@ -22,37 +23,45 @@ export default function FloodZoneMap({ center, geoJsonData }: FloodZoneMapProps)
   const [boundariesActive, setBoundariesActive] = useState(true);
   const [mapType, setMapType] = useState<'hybrid' | 'terrain'>('hybrid');
 
+  // SCRUM-94: Handle Raster Tile Overlay
+  useEffect(() => {
+    if (!map || !tileUrl || typeof google === 'undefined') return;
+
+    const tileLayer = new google.maps.ImageMapType({
+      getTileUrl: (coord, zoom) => {
+        return tileUrl
+          .replace('{x}', coord.x.toString())
+          .replace('{y}', coord.y.toString())
+          .replace('{z}', zoom.toString());
+      },
+      tileSize: new google.maps.Size(256, 256),
+      name: 'FloodHeatmap',
+      opacity: heatmapActive ? 0.6 : 0,
+    });
+
+    map.overlayMapTypes.push(tileLayer);
+
+    return () => {
+      const arr = map.overlayMapTypes.getArray();
+      const idx = arr.indexOf(tileLayer);
+      if (idx !== -1) {
+        map.overlayMapTypes.removeAt(idx);
+      }
+    };
+  }, [map, tileUrl, heatmapActive]);
+
   useEffect(() => {
     if (map && geoJsonData) {
       addGeoJson(geoJsonData);
     }
   }, [map, geoJsonData, addGeoJson]);
 
-  // Handle Heatmap Toggle (ImageMapType layer)
-  useEffect(() => {
-    if (!map) return;
-    
-    // We search for layers that might be ImageMapTypes
-    // Since we don't have the specific layer reference yet, 
-    // we'll implement a way to find and toggle them if they exist.
-    map.overlayMapTypes.forEach((layer, index) => {
-      if (layer && 'setOpacity' in (layer as any)) {
-        (layer as any).setOpacity(heatmapActive ? 1.0 : 0);
-      }
-    });
-  }, [map, heatmapActive]);
-
   // Handle Boundaries Toggle (map.data visibility)
   useEffect(() => {
     if (!map) return;
     
     if (boundariesActive) {
-      map.data.setStyle((feature) => {
-        // Re-trigger the styling from useFloodData logic 
-        // by forcing a style update
-        return (map.data.getStyle() as any);
-      });
-      // Set to visible (default for data layer)
+      map.data.setStyle((map.data.getStyle() as google.maps.Data.StylingFunction) || {});
       map.data.setMap(map);
     } else {
       map.data.setMap(null);

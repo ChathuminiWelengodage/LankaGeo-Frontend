@@ -52,14 +52,14 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
         componentRestrictions: { country: 'lk' },
       },
       (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        if (placesLibrary && status === placesLibrary.PlacesServiceStatus.OK && results) {
           setPredictions(results);
         } else {
           setPredictions([]);
         }
       }
     );
-  }, []);
+  }, [placesLibrary]);
 
   /**
    * Effect to handle debouncing and prediction fetching
@@ -90,14 +90,14 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
     setInputValue(prediction.description);
     setIsDropdownOpen(false);
 
-    if (placesService.current) {
+    if (placesService.current && placesLibrary) {
       placesService.current.getDetails(
         {
           placeId: prediction.place_id,
           fields: ['geometry'],
         },
         (place, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+          if (status === placesLibrary.PlacesServiceStatus.OK && place?.geometry?.location) {
             const lat = place.geometry.location.lat();
             const lng = place.geometry.location.lng();
             onLocationSelect({ lat, lng });
