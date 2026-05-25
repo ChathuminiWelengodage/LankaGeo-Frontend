@@ -117,9 +117,9 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
           type="text"
           value={inputValue}
           onChange={(e) => {
-            const val = e.target.value;
-            setInputValue(val);
-            if (val.length <= 2) {
+            const value = e.target.value;
+            setInputValue(value);
+            if (value.length <= 2) {
               setPredictions([]);
               setIsDropdownOpen(false);
             }
