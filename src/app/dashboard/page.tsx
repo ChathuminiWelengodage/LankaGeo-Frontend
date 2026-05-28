@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
 import FloodZoneMap from '@/components/dashboard/FloodZoneMap';
+import ImpactAssessment from '@/components/dashboard/ImpactAssessment';
 import HistoricalYearStepper from '@/components/dashboard/HistoricalYearStepper';
 import FFITrendChart from '@/components/dashboard/FFITrendChart';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
@@ -178,6 +179,17 @@ function DashboardContent() {
             </div>
           </div>
         </div>
+
+        {geoJsonData && (
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <ImpactAssessment 
+              estimated_population={12450}
+              buildings_exposed={842}
+              road_length_km={15.4}
+              cropland_area_km2={4.2}
+            />
+          </div>
+        )}
       </main>
     </div>
   );
