@@ -29,8 +29,8 @@ export default function HistoricalYearStepper() {
   const isLastYear = selectedYear === yearsData[yearsData.length - 1]?.year;
 
   return (
-    <div className="flex flex-col gap-12 w-full">
-      <div className="flex items-center justify-between bg-sys-layer-01/80 backdrop-blur-md p-12 rounded-12 border border-white/5 shadow-dual">
+    <div className="flex flex-col gap-16 w-full">
+      <div className="flex items-center justify-between bg-sys-layer-01/80 backdrop-blur-md p-16 rounded-8 border border-white/5 shadow-dual">
         <div className="flex items-center gap-16">
           <button
             onClick={handlePrev}
@@ -46,7 +46,7 @@ export default function HistoricalYearStepper() {
                 key={data.year}
                 onClick={() => selectYear(data.year)}
                 disabled={isTransitioning}
-                className={`px-16 py-6 rounded-full text-[13px] font-medium transition-all duration-300 ${
+                className={`px-16 py-8 rounded-full text-[13px] font-medium transition-all duration-300 ${
                   selectedYear === data.year
                     ? 'bg-[#14B8A6] text-white shadow-[0_0_15px_rgba(20,184,166,0.4)]'
                     : 'text-text-secondary hover:bg-white/5'
@@ -69,7 +69,7 @@ export default function HistoricalYearStepper() {
         <button
           onClick={() => selectYear(null)}
           disabled={isTransitioning}
-          className={`px-12 py-6 rounded-6 text-[12px] font-medium transition-colors ${
+          className={`px-16 py-8 rounded-8 text-[12px] font-medium transition-colors ${
             selectedYear === null
               ? 'bg-white/10 text-white'
               : 'text-text-muted hover:text-white hover:bg-white/5'
@@ -80,7 +80,7 @@ export default function HistoricalYearStepper() {
       </div>
 
       {/* Floating Status Label */}
-      <div className="flex items-center gap-8 px-12">
+      <div className="flex items-center gap-8 px-16">
         <div className="w-8 h-8 rounded-full bg-[#14B8A6] animate-pulse"></div>
         <span className="text-[12px] font-mono text-text-secondary tracking-wide uppercase">
           {selectedYear 
