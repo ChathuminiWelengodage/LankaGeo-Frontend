@@ -5,6 +5,7 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
 import FloodZoneMap from '@/components/dashboard/FloodZoneMap';
 import HistoricalYearStepper from '@/components/dashboard/HistoricalYearStepper';
+import FFITrendChart from '@/components/dashboard/FFITrendChart';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 
@@ -41,63 +42,58 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-sys-bg-base">
       {/* Header / Top Bar */}
-      <div className="border-b border-white/5 bg-sys-layer-01/50 backdrop-blur-md sticky top-0 z-30">
+      <header className="border-b border-white/5 bg-sys-layer-01/50 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-screen-2xl mx-auto px-24 md:px-48 h-80 flex items-center justify-between gap-32">
-          <div>
-            <h1 className="text-[24px] font-[300] tracking-tight text-white m-0">Live Analysis</h1>
-            <p className="text-text-secondary text-[13px] m-0">Precision SAR Surveillance Dashboard</p>
+          <div className="flex items-center gap-16">
+            <div className="w-32 h-32 bg-gradient-to-br from-[#14B8A6] to-[#0D9488] rounded-8 flex items-center justify-center shadow-[0_0_10px_rgba(20,184,166,0.3)] border border-white/10 animate-pulse flex-shrink-0">
+              <span className="material-symbols-outlined text-white text-[18px]">satellite_alt</span>
+            </div>
+            <div>
+              <h1 className="text-[20px] font-bold tracking-tight text-white m-0 uppercase leading-none">Live Analysis</h1>
+              <p className="text-text-secondary text-[11px] m-0 font-mono mt-4 opacity-70">Precision SAR Surveillance Dashboard</p>
+            </div>
           </div>
           
           <div className="flex-grow max-w-xl">
-            <LocationSearchBar 
-              onLocationSelect={handleLocationSelect}
-              isLoading={isLoading}
-            />
+            <div className="interactive-glow rounded-4 overflow-hidden">
+              <LocationSearchBar 
+                onLocationSelect={handleLocationSelect}
+                isLoading={isLoading}
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-16">
+          <div className="flex items-center gap-16 group cursor-help p-8 rounded-4 hover:bg-white/5 transition-all">
             <div className="flex flex-col items-end">
-              <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">System Status</span>
-              <span className="flex items-center gap-6 text-[#24a148] text-[13px]">
-                <span className="w-8 h-8 rounded-full bg-[#24a148] animate-pulse"></span>
+              <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider group-hover:text-text-secondary transition-colors">System Status</span>
+              <span className="flex items-center gap-6 text-[#24a148] text-[13px] font-bold">
+                <span className="w-8 h-8 rounded-full bg-[#24a148] animate-pulse shadow-[0_0_8px_rgba(36,161,72,0.6)]"></span>
                 Operational
               </span>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       <main className="max-w-screen-2xl mx-auto px-24 md:px-48 py-32 space-y-32">
         {/* Historical Timeline Controls */}
-        <div className="max-w-3xl">
+        <div className="max-w-3xl animate-in fade-in slide-in-from-top-4 duration-700">
           <HistoricalYearStepper />
         </div>
 
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
           {/* Map Section */}
-          <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group">
+          <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
             <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} tileUrl={tileUrl} />
-            
-            {!geoJsonData && !selectedYear && (
-              <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40 backdrop-blur-[2px]">
-                {coordinates ? (
-                  <div className="text-center">
-                    <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
-                    <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
-                    <p className="text-accent-primary font-mono mt-4">
-                      {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center opacity-40">
-                    <span className="material-symbols-outlined text-[64px] mb-16">map</span>
-                    <p>Initialize monitoring by selecting a location</p>
-                  </div>
-                )}
+
+            {/* Scanning Effect Overlay */}
+            {isLoading && (
+              <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#14B8A6]/10 to-transparent h-1/2 w-full animate-scan"></div>
+                <div className="absolute inset-0 bg-[#14B8A6]/5 animate-pulse"></div>
               </div>
             )}
-            
             {/* Decorative corners */}
             <div className="absolute top-16 left-16 w-32 h-32 border-t-2 border-l-2 border-white/10 pointer-events-none"></div>
             <div className="absolute top-16 right-16 w-32 h-32 border-t-2 border-r-2 border-white/10 pointer-events-none"></div>
@@ -109,7 +105,7 @@ function DashboardContent() {
           <div className="lg:col-span-4 space-y-24">
             <div className="card-standard min-h-[300px] flex flex-col justify-between">
               <div>
-                <h3 className="text-white text-[18px] mb-16">
+                <h3 className="text-white text-[18px] mb-16 font-bold tracking-tight">
                   {selectedYear ? `Historical Runoff: ${selectedYear}` : 'Analysis Parameters'}
                 </h3>
                 
@@ -122,9 +118,9 @@ function DashboardContent() {
                     <div className="flex justify-between items-center py-8 border-b border-white/5">
                       <span className="text-text-secondary text-[13px]">Flood Frequency Index</span>
                       <span className={`font-mono text-[13px] px-8 py-2 rounded-4 ${
-                        currentData.flood_frequency_index > 7 ? 'bg-ruby-alert/20 text-ruby-alert' : 'bg-[#14B8A6]/20 text-[#14B8A6]'
+                        currentData.flood_frequency_index > 0.7 ? 'bg-ruby-alert/20 text-ruby-alert' : 'bg-[#14B8A6]/20 text-[#14B8A6]'
                       }`}>
-                        {currentData.flood_frequency_index} / 10
+                        {currentData.flood_frequency_index.toFixed(2)} / 1.00
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-8 border-b border-white/5">
@@ -165,12 +161,14 @@ function DashboardContent() {
               </button>
             </div>
 
+            <FFITrendChart />
+
             <div className="card-standard">
               <h3 className="text-white text-[18px] mb-16">Macro Metric Coverage</h3>
               <div className="space-y-12">
                 <div className="p-12 bg-[#14B8A6]/10 border-l-2 border-[#14B8A6] rounded-r-4">
                   <p className="text-[#14B8A6] text-[13px] font-semibold">5-Year Resilience Composite</p>
-                  <p className="text-text-muted text-[11px] mt-4">Average FFI: 6.4</p>
+                  <p className="text-text-muted text-[11px] mt-4">Average FFI: 0.64</p>
                 </div>
                 <div className="p-12 bg-white/5 border-l-2 border-text-muted rounded-r-4">
                   <p className="text-text-secondary text-[13px]">System Health: Optimal</p>
