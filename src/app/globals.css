@@ -121,4 +121,27 @@ html, body {
            transition-all duration-300 hover:bg-sys-layer-02 hover:border-accent-primary/30 
            hover:-translate-y-[2px] hover:shadow-floating;
   }
+
+  .interactive-glow {
+    @apply transition-all duration-300 hover:shadow-[0_0_20px_rgba(15,98,254,0.2)] hover:border-white/20;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  .animate-scan {
+    animation: scan 3s linear infinite;
+  }
+
+  @keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(200%); }
+  }
 }

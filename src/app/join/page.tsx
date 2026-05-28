@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import AuthModal from '@/components/auth/AuthModal';
+import React from 'react';
+import { useUser } from '@/context/UserContext';
 
 export default function JoinPage() {
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const { authModal } = useUser();
 
   return (
     <main className="min-h-screen bg-sys-bg-base py-96 px-24 md:px-48">
@@ -41,7 +41,7 @@ export default function JoinPage() {
           </p>
           <div className="flex justify-center gap-16">
             <button 
-              onClick={() => setIsAuthOpen(true)}
+              onClick={() => authModal.open('signup')}
               className="btn-primary"
             >
               Initialize Account
@@ -49,12 +49,6 @@ export default function JoinPage() {
           </div>
         </div>
       </div>
-
-      <AuthModal 
-        isOpen={isAuthOpen} 
-        onClose={() => setIsAuthOpen(false)} 
-        initialMode="signup"
-      />
     </main>
   );
 }

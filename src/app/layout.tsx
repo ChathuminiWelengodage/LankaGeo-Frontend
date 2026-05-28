@@ -4,6 +4,7 @@ import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import AuthModalWrapper from "@/components/auth/AuthModalWrapper";
 
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-ibm-plex-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <AuthModalWrapper />
         </UserProvider>
       </body>
     </html>
