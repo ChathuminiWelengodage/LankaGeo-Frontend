@@ -1,20 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
 import FloodZoneMap from '@/components/dashboard/FloodZoneMap';
 import ImpactAssessment from '@/components/dashboard/ImpactAssessment';
 import HistoricalYearStepper from '@/components/dashboard/HistoricalYearStepper';
 import FFITrendChart from '@/components/dashboard/FFITrendChart';
+import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverlay';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
+const PROGRESS_MESSAGES = [
+  'Checking cloud cover',
+  'Running SAR/optical analysis',
+  'Classifying flood risk zones',
+  'Computing impact',
+  'Rendering map overlay'
+];
+
 function DashboardContent() {
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState(PROGRESS_MESSAGES[0]);
+  const [error, setError] = useState<'timeout' | 'offline' | null>(() => {
+    if (typeof window !== 'undefined' && !navigator.onLine) return 'offline';
+    return null;
+  });
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const { currentData, selectedYear } = useHistorical();
   
@@ -23,21 +37,78 @@ function DashboardContent() {
     'https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}' // Example URL (Hybrid labels as placeholder)
   );
 
+  // Handle Offline/Online Status
+  useEffect(() => {
+    const handleOffline = () => {
+      setError('offline');
+      setIsLoading(false); // Stop loading on network failure
+    };
+    const handleOnline = () => {
+      setError((prev) => (prev === 'offline' ? null : prev));
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+
+  // Cycle through progress messages
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    
+    if (isLoading && !error) {
+      let index = 0;
+      
+      interval = setInterval(() => {
+        index = (index + 1) % PROGRESS_MESSAGES.length;
+        setLoadingMessage(PROGRESS_MESSAGES[index]);
+      }, 3000); // 15s total / 5 messages = 3s each
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isLoading, error]);
+
+  const startAnalysis = () => {
+    if (!navigator.onLine) {
+      setError('offline');
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadingMessage(PROGRESS_MESSAGES[0]);
+    setError(null);
+    setGeoJsonData(null);
+
+    // Simulate API delay with possible timeout
+    const simulationDuration = 15000; // 15 seconds as per specs
+    
+    setTimeout(() => {
+      // 10% chance to simulate a timeout error
+      if (Math.random() < 0.1) {
+        setError('timeout');
+        setIsLoading(false);
+      } else {
+        setGeoJsonData(MOCK_GEOJSON);
+        // Example heatmap overlay URL
+        setTileUrl('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}');
+        setIsLoading(false);
+      }
+    }, simulationDuration);
+  };
+
   const handleLocationSelect = (coords: { lat: number; lng: number }) => {
     setCoordinates(coords);
     setGeoJsonData(null); // Clear previous analysis
+    setError(null);
     console.log('Selected coordinates:', coords);
-  };
-
-  const startAnalysis = () => {
-    setIsLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
-      setGeoJsonData(MOCK_GEOJSON);
-      // Example heatmap overlay URL (using a colored placeholder here)
-      setTileUrl('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}');
-      setIsLoading(false);
-    }, 1500);
+    // Automatically trigger analysis on location select as per SCRUM-99 requirement "Trigger: On search bar submission"
+    startAnalysis();
   };
 
   return (
@@ -64,12 +135,12 @@ function DashboardContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-16 group cursor-help p-8 rounded-4 hover:bg-white/5 transition-all">
+          <div className="flex items-center gap-16">
             <div className="flex flex-col items-end">
-              <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider group-hover:text-text-secondary transition-colors">System Status</span>
-              <span className="flex items-center gap-6 text-[#24a148] text-[13px] font-bold">
-                <span className="w-8 h-8 rounded-full bg-[#24a148] animate-pulse shadow-[0_0_8px_rgba(36,161,72,0.6)]"></span>
-                Operational
+              <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">System Status</span>
+              <span className={`flex items-center gap-6 ${error === 'offline' ? 'text-ruby-alert' : 'text-[#24a148]'} text-[13px] font-bold`}>
+                <span className={`w-8 h-8 rounded-full ${error === 'offline' ? 'bg-ruby-alert' : 'bg-[#24a148] animate-pulse shadow-[0_0_8px_rgba(36,161,72,0.6)]'}`}></span>
+                {error === 'offline' ? 'Disconnected' : 'Operational'}
               </span>
             </div>
           </div>
@@ -87,6 +158,13 @@ function DashboardContent() {
           {/* Map Section */}
           <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
             <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} tileUrl={tileUrl} />
+            
+            <AnalysisLoadingOverlay 
+              isLoading={isLoading} 
+              message={loadingMessage} 
+              error={error} 
+              onRetry={startAnalysis}
+            />
 
             {/* Scanning Effect Overlay */}
             {isLoading && (
@@ -95,6 +173,26 @@ function DashboardContent() {
                 <div className="absolute inset-0 bg-[#14B8A6]/5 animate-pulse"></div>
               </div>
             )}
+
+            {!geoJsonData && !isLoading && !error && (
+              <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40 backdrop-blur-[2px]">
+                {coordinates ? (
+                  <div className="text-center">
+                    <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
+                    <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
+                    <p className="text-accent-primary font-mono mt-4">
+                      {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center opacity-40">
+                    <span className="material-symbols-outlined text-[64px] mb-16">map</span>
+                    <p>Initialize monitoring by selecting a location</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
             {/* Decorative corners */}
             <div className="absolute top-16 left-16 w-32 h-32 border-t-2 border-l-2 border-white/10 pointer-events-none"></div>
             <div className="absolute top-16 right-16 w-32 h-32 border-t-2 border-r-2 border-white/10 pointer-events-none"></div>
@@ -129,7 +227,7 @@ function DashboardContent() {
                       <span className="text-white font-mono text-[13px]">{currentData.max_area_km2} km²</span>
                     </div>
                     <p className="text-text-muted text-[12px] leading-relaxed mt-16 italic">
-                      "{currentData.impact_summary}"
+                      &quot;{currentData.impact_summary}&quot;
                     </p>
                   </div>
                 ) : (
@@ -152,7 +250,7 @@ function DashboardContent() {
               
               <button 
                 onClick={startAnalysis}
-                disabled={!coordinates || isLoading || !!selectedYear}
+                disabled={!coordinates || isLoading || !!selectedYear || error === 'offline'}
                 className="btn-primary w-full mt-24 disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <span className={`material-symbols-outlined mr-8 ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'} transition-transform duration-500`}>
