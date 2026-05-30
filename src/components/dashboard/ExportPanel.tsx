@@ -20,13 +20,25 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const isLiveView = selectedYear === null;
 
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleLivePDFExport = async () => {
     if (!isAnalysisComplete || isExportingPDF) return;
 
     setIsExportingPDF(true);
     try {
-      const response = await apiFetch('/reports/live', {
+      const blob = await apiFetch('/reports/live', {
         method: 'POST',
+        responseType: 'blob',
         body: JSON.stringify({
           region,
           data: geoJsonData,
@@ -34,14 +46,8 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
         })
       });
 
-      // Handle native download if API returns a blob or a URL
-      // For this mock, we'll simulate the download logic
-      if (response.download_url) {
-        window.location.href = response.download_url;
-      } else {
-        console.log('PDF export successful', response);
-        // In a real scenario, we might handle a blob response here
-      }
+      const date = new Date().toISOString().split('T')[0];
+      triggerDownload(blob, `LG-LIVE-REPORT-${region}-${date}.pdf`);
     } catch (error) {
       console.error('Error exporting Live PDF:', error);
     } finally {
@@ -54,8 +60,9 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
 
     setIsExportingPDF(true);
     try {
-      const response = await apiFetch('/reports/historical', {
+      const blob = await apiFetch('/reports/historical', {
         method: 'POST',
+        responseType: 'blob',
         body: JSON.stringify({
           year: selectedYear,
           region,
@@ -64,11 +71,8 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
         })
       });
 
-      if (response.download_url) {
-        window.location.href = response.download_url;
-      } else {
-        console.log('Historical PDF export successful', response);
-      }
+      const date = new Date().toISOString().split('T')[0];
+      triggerDownload(blob, `LG-HISTORICAL-REPORT-${region}-${selectedYear}-${date}.pdf`);
     } catch (error) {
       console.error('Error exporting Historical PDF:', error);
     } finally {
@@ -83,43 +87,33 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
     const filename = `LG-LIVE-${region}-${date}.geojson`;
     
     const blob = new Blob([JSON.stringify(geoJsonData, null, 2)], { type: 'application/geo+json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    triggerDownload(blob, filename);
   };
 
   const handleHistoricalGeoJSONExport = () => {
     if (!isAnalysisComplete) return;
 
-    // Generate export from the client-side years_data[] composite object
+    // Generate export from the client-side years_data[] composite object (SCRUM-134)
     const exportData = {
       type: "FeatureCollection",
       features: yearsData.map(year => ({
         type: "Feature",
-        properties: { ...year },
-        geometry: null // Historical summary data might not have geometry
+        properties: { 
+          year: year.year,
+          total_zones: year.total_zones,
+          flood_frequency_index: year.flood_frequency_index,
+          max_area_km2: year.max_area_km2,
+          impact_summary: year.impact_summary
+        },
+        geometry: null // Historical summary data might not have geometry in this context
       }))
     };
 
     const date = new Date().toISOString().split('T')[0];
-    const filename = `LG-HISTORICAL-${region}-${selectedYear || 'COMPOSITE'}-${date}.geojson`;
+    const filename = `LG-HISTORICAL-${region}-${date}.geojson`;
     
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/geo+json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    triggerDownload(blob, filename);
   };
 
   return (
