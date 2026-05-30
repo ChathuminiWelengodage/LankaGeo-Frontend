@@ -11,7 +11,7 @@ const AuthModalWrapper = () => {
     <AuthModal 
       isOpen={authModal.isOpen} 
       onClose={authModal.close} 
-      initialMode={authModal.mode} 
+      initialMode={authModal.mode}
     />
   );
 };
