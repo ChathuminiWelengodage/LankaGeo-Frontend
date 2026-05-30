@@ -1,54 +1,96 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import { useFloodData } from '@/hooks/useFloodData';
 import MapToggleControls from './controls/MapToggleControls';
+import { useHistorical } from '@/context/HistoricalContext';
 
 interface FloodZoneMapProps {
   center: { lat: number; lng: number } | null;
   geoJsonData?: Record<string, unknown> | null;
-  tileUrl?: string;
+  tileUrl?: string; // Fallback or current live tile
 }
 
 const DEFAULT_CENTER = { lat: 7.8731, lng: 80.7718 }; // Center of Sri Lanka
 const DEFAULT_ZOOM = 8;
+const TRANSITION_DURATION = 300; // ms
 
-export default function FloodZoneMap({ center, geoJsonData, tileUrl }: FloodZoneMapProps) {
+export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl }: FloodZoneMapProps) {
   const map = useMap();
   const { addGeoJson } = useFloodData(map);
+  const { currentData, setTransitioning } = useHistorical();
   
   // Layer states
   const [heatmapActive, setHeatmapActive] = useState(true);
   const [boundariesActive, setBoundariesActive] = useState(true);
   const [mapType, setMapType] = useState<'hybrid' | 'terrain'>('hybrid');
 
-  // SCRUM-94: Handle Raster Tile Overlay
-  useEffect(() => {
-    if (!map || !tileUrl || typeof google === 'undefined') return;
+  const activeLayersRef = useRef<google.maps.ImageMapType[]>([]);
+  const currentTileUrlRef = useRef<string | null>(null);
 
-    const tileLayer = new google.maps.ImageMapType({
+  // SCRUM-94: Handle Raster Tile Overlay with Smooth Cross-Fade
+  useEffect(() => {
+    if (!map || typeof google === 'undefined') return;
+
+    const targetUrl = currentData.tile_url || liveTileUrl;
+    if (!targetUrl || targetUrl === currentTileUrlRef.current) return;
+
+    setTransitioning(true);
+
+    const newLayer = new google.maps.ImageMapType({
       getTileUrl: (coord, zoom) => {
-        return tileUrl
+        return targetUrl
           .replace('{x}', coord.x.toString())
           .replace('{y}', coord.y.toString())
           .replace('{z}', zoom.toString());
       },
       tileSize: new google.maps.Size(256, 256),
-      name: 'FloodHeatmap',
-      opacity: heatmapActive ? 0.6 : 0,
+      opacity: 0,
     });
 
-    map.overlayMapTypes.push(tileLayer);
+    // Add new layer to map
+    map.overlayMapTypes.push(newLayer);
+    const oldLayers = [...activeLayersRef.current];
+    activeLayersRef.current = [newLayer];
+    currentTileUrlRef.current = targetUrl;
 
-    return () => {
-      const arr = map.overlayMapTypes.getArray();
-      const idx = arr.indexOf(tileLayer);
-      if (idx !== -1) {
-        map.overlayMapTypes.removeAt(idx);
+    // Animate Cross-Fade
+    let start: number | null = null;
+    const animate = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const progress = timestamp - start;
+      const opacity = Math.min(progress / TRANSITION_DURATION, 1);
+      
+      const displayOpacity = heatmapActive ? opacity : 0;
+      newLayer.setOpacity(displayOpacity);
+      
+      oldLayers.forEach(layer => {
+        const oldOpacity = heatmapActive ? (1 - opacity) : 0;
+        layer.setOpacity(oldOpacity);
+      });
+
+      if (progress < TRANSITION_DURATION) {
+        requestAnimationFrame(animate);
+      } else {
+        // Cleanup old layers
+        oldLayers.forEach(layer => {
+          const idx = map.overlayMapTypes.getArray().indexOf(layer);
+          if (idx !== -1) map.overlayMapTypes.removeAt(idx);
+        });
+        setTransitioning(false);
       }
     };
-  }, [map, tileUrl, heatmapActive]);
+
+    requestAnimationFrame(animate);
+  }, [map, currentData.tile_url, liveTileUrl, heatmapActive, setTransitioning]);
+
+  // Handle Heatmap Toggle Opacity
+  useEffect(() => {
+    activeLayersRef.current.forEach(layer => {
+      layer.setOpacity(heatmapActive ? 1 : 0);
+    });
+  }, [heatmapActive]);
 
   useEffect(() => {
     if (map && geoJsonData) {
