@@ -7,7 +7,8 @@ import { supabase } from './supabase';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
+export async function apiFetch(endpoint: string, options: RequestInit & { responseType?: 'json' | 'blob' } = {}) {
+  const { responseType = 'json', ...fetchOptions } = options;
   const url = `${BACKEND_URL}${endpoint}`;
   
   // Get the current session to include the JWT token
@@ -16,7 +17,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...((options.headers as Record<string, string>) || {}),
+    ...((fetchOptions.headers as Record<string, string>) || {}),
   };
 
   if (token) {
@@ -24,13 +25,17 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   }
 
   const response = await fetch(url, {
-    ...options,
+    ...fetchOptions,
     headers,
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || `API request failed with status ${response.status}`);
+  }
+
+  if (responseType === 'blob') {
+    return response.blob();
   }
 
   return response.json();

@@ -8,6 +8,7 @@ import ImpactAssessment from '@/components/dashboard/ImpactAssessment';
 import HistoricalYearStepper from '@/components/dashboard/HistoricalYearStepper';
 import FFITrendChart from '@/components/dashboard/FFITrendChart';
 import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverlay';
+import ExportPanel from '@/components/dashboard/ExportPanel';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 
@@ -260,7 +261,14 @@ function DashboardContent() {
               </button>
             </div>
 
+            <ExportPanel 
+              isAnalysisComplete={!!geoJsonData || !!selectedYear} 
+              geoJsonData={geoJsonData}
+              region="SriLanka"
+            />
+
             <FFITrendChart />
+
 
             <div className="card-standard">
               <h3 className="text-white text-[18px] mb-16">Macro Metric Coverage</h3>
