@@ -7,6 +7,7 @@ import FloodZoneMap from '@/components/dashboard/FloodZoneMap';
 import ImpactAssessment from '@/components/dashboard/ImpactAssessment';
 import HistoricalYearStepper from '@/components/dashboard/HistoricalYearStepper';
 import FFITrendChart from '@/components/dashboard/FFITrendChart';
+import ExportPanel from '@/components/dashboard/ExportPanel';
 import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverlay';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
@@ -23,6 +24,7 @@ const PROGRESS_MESSAGES = [
 
 function DashboardContent() {
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(PROGRESS_MESSAGES[0]);
   const [error, setError] = useState<'timeout' | 'offline' | null>(() => {
@@ -30,7 +32,7 @@ function DashboardContent() {
     return null;
   });
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
-  const { currentData, selectedYear } = useHistorical();
+  const { currentData, selectedYear, yearsData } = useHistorical();
   
   // Mock Tile URL for Google Earth Engine flood heatmap (SCRUM-94)
   const [tileUrl, setTileUrl] = useState<string | undefined>(
@@ -102,11 +104,12 @@ function DashboardContent() {
     }, simulationDuration);
   };
 
-  const handleLocationSelect = (coords: { lat: number; lng: number }) => {
+  const handleLocationSelect = (coords: { lat: number; lng: number }, name: string) => {
     setCoordinates(coords);
+    setLocationName(name);
     setGeoJsonData(null); // Clear previous analysis
     setError(null);
-    console.log('Selected coordinates:', coords);
+    console.log('Selected coordinates:', coords, 'Name:', name);
     // Automatically trigger analysis on location select as per SCRUM-99 requirement "Trigger: On search bar submission"
     startAnalysis();
   };
@@ -262,6 +265,14 @@ function DashboardContent() {
 
             <FFITrendChart />
 
+            <ExportPanel 
+              isLoading={isLoading}
+              geoJsonData={geoJsonData}
+              selectedYear={selectedYear}
+              currentData={currentData}
+              yearsData={yearsData}
+              locationName={locationName}
+            />
 
             <div className="card-standard">
               <h3 className="text-white text-[18px] mb-16">Macro Metric Coverage</h3>
