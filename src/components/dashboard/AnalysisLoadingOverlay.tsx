@@ -25,7 +25,7 @@ export default function AnalysisLoadingOverlay({
     <>
       {/* Loading Overlay - Semi-transparent covering the map */}
       {isLoading && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#11131c]/80 backdrop-blur-md transition-all duration-500 animate-fade-in">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#11131c]/80 transition-all duration-500 animate-fade-in">
           <div className="text-center animate-zoom-in duration-500">
             <div className="relative mb-24 flex justify-center">
               {/* Outer pulse */}
