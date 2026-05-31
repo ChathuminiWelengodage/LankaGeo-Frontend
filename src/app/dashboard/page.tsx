@@ -8,7 +8,6 @@ import ImpactAssessment from '@/components/dashboard/ImpactAssessment';
 import HistoricalYearStepper from '@/components/dashboard/HistoricalYearStepper';
 import FFITrendChart from '@/components/dashboard/FFITrendChart';
 import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverlay';
-import ExportPanel from '@/components/dashboard/ExportPanel';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 
@@ -260,12 +259,6 @@ function DashboardContent() {
                 {isLoading ? 'Processing SAR Data...' : 'Start Live Analysis'}
               </button>
             </div>
-
-            <ExportPanel 
-              isAnalysisComplete={!!geoJsonData || !!selectedYear} 
-              geoJsonData={geoJsonData}
-              region="SriLanka"
-            />
 
             <FFITrendChart />
 
