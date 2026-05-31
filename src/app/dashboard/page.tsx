@@ -128,7 +128,7 @@ function DashboardContent() {
                       <span className="text-white font-mono text-[13px]">{currentData.max_area_km2} km²</span>
                     </div>
                     <p className="text-text-muted text-[12px] leading-relaxed mt-16 italic">
-                      "{currentData.impact_summary}"
+                      &quot;{currentData.impact_summary}&quot;
                     </p>
                   </div>
                 ) : (

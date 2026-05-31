@@ -102,3 +102,51 @@ export const COMPOSITE_FLOOD_DATA: HistoricalData = {
   impact_summary: 'Cumulative 5-year resilience composite showing macro trends.',
   max_area_km2: 145.8
 };
+
+// --- Hydrological Stations ---
+
+export interface GaugeStation {
+  id: string;
+  name: string;
+  position: { lat: number; lng: number };
+}
+
+export type GaugeStatus = 'normal' | 'elevated' | 'critical';
+
+export interface LiveGaugeData {
+  station_id: string;
+  name: string;
+  current_level: number;
+  baseline: number;
+  status: GaugeStatus;
+}
+
+export const GAUGE_STATIONS: GaugeStation[] = [
+  { 
+    id: 'HS-01', 
+    name: 'Hanwella Gauging Core', 
+    position: { lat: 6.9038, lng: 80.1311 } 
+  },
+  { 
+    id: 'HS-02', 
+    name: 'Nagalagam Street Base', 
+    position: { lat: 6.9586, lng: 79.8732 } 
+  }
+];
+
+export const MOCK_LIVE_GAUGES: Record<string, LiveGaugeData> = {
+  'HS-01': {
+    station_id: 'HS-01',
+    name: 'Hanwella Gauging Station - HS-01',
+    current_level: 4.82,
+    baseline: 2.50,
+    status: 'critical'
+  },
+  'HS-02': {
+    station_id: 'HS-02',
+    name: 'Nagalagam Street Base - HS-02',
+    current_level: 1.25,
+    baseline: 1.10,
+    status: 'normal'
+  }
+};

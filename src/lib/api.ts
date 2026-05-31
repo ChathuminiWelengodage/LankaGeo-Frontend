@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { MOCK_LIVE_GAUGES, LiveGaugeData } from './mock-flood-data';
 
 /**
  * Utility for making API requests to the backend.
@@ -34,4 +35,19 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   }
 
   return response.json();
+}
+
+/**
+ * Fetches live hydrological gauge telemetry data.
+ * Currently uses mock data with a simulated delay for development.
+ */
+export async function fetchLiveGauges(): Promise<Record<string, LiveGaugeData>> {
+  // In production, this would be:
+  // return apiFetch('/api/v1/gauges/live');
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(MOCK_LIVE_GAUGES);
+    }, 1200);
+  });
 }

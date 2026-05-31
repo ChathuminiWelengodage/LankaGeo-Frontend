@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { MOCK_CASE_STUDIES } from '@/lib/mock-case-studies';
 import StaticMap from '@/components/dashboard/StaticMap';
