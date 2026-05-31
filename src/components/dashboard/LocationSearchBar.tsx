@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 
 interface LocationSearchBarProps {
-  onLocationSelect: (coords: { lat: number; lng: number }) => void;
+  onLocationSelect: (coords: { lat: number; lng: number }, name: string) => void;
   isLoading?: boolean;
 }
 
@@ -100,7 +100,7 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
           if (status === placesLibrary.PlacesServiceStatus.OK && place?.geometry?.location) {
             const lat = place.geometry.location.lat();
             const lng = place.geometry.location.lng();
-            onLocationSelect({ lat, lng });
+            onLocationSelect({ lat, lng }, prediction.description);
           }
         }
       );
