@@ -34,11 +34,6 @@ function DashboardContent() {
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const { currentData, selectedYear, yearsData } = useHistorical();
   
-  // Mock Tile URL for Google Earth Engine flood heatmap (SCRUM-94)
-  const [tileUrl, setTileUrl] = useState<string | undefined>(
-    'https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}' // Example URL (Hybrid labels as placeholder)
-  );
-
   // Handle Offline/Online Status
   useEffect(() => {
     const handleOffline = () => {
@@ -97,8 +92,6 @@ function DashboardContent() {
         setIsLoading(false);
       } else {
         setGeoJsonData(MOCK_GEOJSON);
-        // Example heatmap overlay URL
-        setTileUrl('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}');
         setIsLoading(false);
       }
     }, simulationDuration);
@@ -117,7 +110,7 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-sys-bg-base">
       {/* Header / Top Bar */}
-      <header className="border-b border-white/5 bg-sys-layer-01/50 backdrop-blur-md sticky top-0 z-30">
+      <header className="border-b border-white/5 bg-sys-layer-01/50 sticky top-0 z-30">
         <div className="max-w-screen-2xl mx-auto px-24 md:px-48 h-80 flex items-center justify-between gap-32">
           <div className="flex items-center gap-16">
             <div className="w-32 h-32 bg-gradient-to-br from-[#14B8A6] to-[#0D9488] rounded-8 flex items-center justify-center shadow-[0_0_10px_rgba(20,184,166,0.3)] border border-white/10 animate-pulse flex-shrink-0">
@@ -160,7 +153,7 @@ function DashboardContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
           {/* Map Section */}
           <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
-            <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} tileUrl={tileUrl} />
+            <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} />
             
             <AnalysisLoadingOverlay 
               isLoading={isLoading} 
@@ -178,7 +171,7 @@ function DashboardContent() {
             )}
 
             {!geoJsonData && !isLoading && !error && (
-              <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40 backdrop-blur-[2px]">
+              <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40">
                 {coordinates ? (
                   <div className="text-center">
                     <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
