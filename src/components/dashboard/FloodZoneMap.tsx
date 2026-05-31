@@ -5,6 +5,7 @@ import { Map, useMap } from '@vis.gl/react-google-maps';
 import { useFloodData } from '@/hooks/useFloodData';
 import MapToggleControls from './controls/MapToggleControls';
 import { useHistorical } from '@/context/HistoricalContext';
+import HydrologicalStations from './HydrologicalStations';
 
 interface FloodZoneMapProps {
   center: { lat: number; lng: number } | null;
@@ -123,6 +124,7 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
         className="w-full h-full"
       >
         {/* The Data Layer is managed via useFloodData hook */}
+        <HydrologicalStations />
       </Map>
 
       <MapToggleControls 

@@ -12,12 +12,6 @@ export default function FFITrendChart() {
     return 'bg-red-500';
   };
 
-  const getSeverityLabel = (ffi: number) => {
-    if (ffi < 0.50) return 'Low';
-    if (ffi < 0.70) return 'Moderate';
-    return 'High';
-  };
-
   return (
     <div className="card-standard space-y-24">
       <div className="flex items-center justify-between">
