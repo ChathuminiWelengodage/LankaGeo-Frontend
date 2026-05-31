@@ -6,7 +6,7 @@ import { apiFetch } from '@/lib/api';
 
 interface ExportPanelProps {
   isAnalysisComplete: boolean;
-  geoJsonData: any;
+  geoJsonData: Record<string, unknown> | null;
   region?: string;
 }
 
