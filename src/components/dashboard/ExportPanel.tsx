@@ -111,82 +111,104 @@ export default function ExportPanel({
   const isHistoricalDisabled = isLoading; // Historical data is usually available from mock-flood-data
 
   return (
-    <div className="card-standard">
-      <div className="flex items-center gap-8 mb-16">
-        <span className="material-symbols-outlined text-accent-primary">download</span>
-        <h3 className="text-white text-[18px] font-bold tracking-tight">Export Panel</h3>
-      </div>
-
-      <div className="space-y-16">
-        {/* Mode Indicator */}
-        <div className="flex items-center gap-8 px-12 py-6 bg-white/5 rounded-4 border border-white/10">
-          <span className="w-8 h-8 rounded-full bg-accent-primary animate-pulse"></span>
-          <span className="text-[11px] font-mono text-text-secondary uppercase tracking-widest">
-            {selectedYear ? `Historical Mode: ${selectedYear}` : 'Live Analysis Mode'}
-          </span>
+    <div className="card-standard relative overflow-hidden group/panel">
+      {/* Decorative scanning line effect */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent-primary/40 to-transparent -translate-x-full group-hover/panel:translate-x-full transition-transform duration-1000"></div>
+      
+      <div className="flex items-center justify-between mb-16">
+        <div className="flex items-center gap-8">
+          <div className="w-32 h-32 rounded-6 bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-accent-primary text-[18px]">file_download</span>
+          </div>
+          <div>
+            <h3 className="text-white text-[16px] font-bold tracking-tight">Export Panel</h3>
+            <p className="text-[10px] text-text-muted leading-tight mt-2 max-w-[280px]">
+              Export current live analysis results, including flood zone delineations and impact metrics.
+            </p>
+          </div>
         </div>
 
-        {!selectedYear ? (
-          /* Live View Controls */
-          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2">
-            <button
-              onClick={handleLivePdfDownload}
-              disabled={isLiveDisabled || isExportingPdf}
-              className="btn-secondary w-full flex items-center justify-center gap-12 py-12 disabled:opacity-30"
-            >
-              {isExportingPdf ? (
-                <div className="w-16 h-16 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <span className="material-symbols-outlined text-[20px]">picture_as_pdf</span>
-              )}
-              <span className="text-[14px] font-medium">Download Live PDF</span>
-            </button>
-            <button
-              onClick={handleLiveGeoJsonDownload}
-              disabled={isLiveDisabled}
-              className="btn-secondary w-full flex items-center justify-center gap-12 py-12 border-accent-primary/20 text-accent-primary hover:bg-accent-primary/5 disabled:opacity-30"
-            >
-              <span className="material-symbols-outlined text-[20px]">map</span>
-              <span className="text-[14px] font-medium">Download Live GeoJSON</span>
-            </button>
-            {isLiveDisabled && !isLoading && (
-              <p className="text-[11px] text-text-muted text-center italic">
-                Perform an analysis to enable live exports
-              </p>
-            )}
-          </div>
-        ) : (
-          /* Historical View Controls */
-          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2">
-            <button
-              onClick={handleHistoricalPdfDownload}
-              disabled={isHistoricalDisabled || isExportingPdf}
-              className="btn-secondary w-full flex items-center justify-center gap-12 py-12 disabled:opacity-30"
-            >
-              {isExportingPdf ? (
-                <div className="w-16 h-16 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <span className="material-symbols-outlined text-[20px]">picture_as_pdf</span>
-              )}
-              <span className="text-[14px] font-medium">Download Historical PDF</span>
-            </button>
-            <button
-              onClick={handleHistoricalGeoJsonDownload}
-              disabled={isHistoricalDisabled}
-              className="btn-secondary w-full flex items-center justify-center gap-12 py-12 border-accent-primary/20 text-accent-primary hover:bg-accent-primary/5 disabled:opacity-30"
-            >
-              <span className="material-symbols-outlined text-[20px]">database</span>
-              <span className="text-[14px] font-medium">Download Historical GeoJSON</span>
-            </button>
-          </div>
-        )}
+        {/* Status Badge - Compact version */}
+        <div className={`flex items-center gap-6 px-10 py-4 rounded-full border ${
+          selectedYear 
+            ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' 
+            : 'bg-accent-primary/10 border-accent-primary/20 text-accent-primary'
+        }`}>
+          <span className={`w-5 h-5 rounded-full ${selectedYear ? 'bg-blue-400' : 'bg-accent-primary'} animate-pulse`}></span>
+          <span className="text-[9px] font-bold uppercase tracking-tighter">
+            {selectedYear ? `Archive: ${selectedYear}` : 'Live Stream'}
+          </span>
+        </div>
       </div>
 
-      <div className="mt-16 pt-16 border-t border-white/5">
-        <p className="text-[11px] text-text-muted leading-relaxed">
-          Reports are generated using high-fidelity SAR data and multi-temporal analysis pipelines.
-        </p>
+      {isLiveDisabled && !selectedYear && !isLoading && (
+        <div className="mb-12 flex items-center gap-8 px-12 py-8 bg-ruby-alert/10 border border-ruby-alert/20 rounded-4 animate-in fade-in slide-in-from-top-2">
+          <span className="material-symbols-outlined text-ruby-alert text-[16px]">warning</span>
+          <span className="text-ruby-alert text-[10px] font-bold uppercase tracking-wider">
+            ANALYSIS MUST BE COMPLETED BEFORE EXPORT
+          </span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* PDF Export Card - More compact */}
+        <button
+          onClick={selectedYear ? handleHistoricalPdfDownload : handleLivePdfDownload}
+          disabled={(selectedYear ? isHistoricalDisabled : isLiveDisabled) || isExportingPdf}
+          className="relative group/btn flex flex-col items-start p-10 rounded-6 bg-white/5 border border-white/10 hover:border-accent-primary/40 hover:bg-accent-primary/5 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed text-left overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/btn:opacity-40 transition-opacity">
+            <span className="material-symbols-outlined text-[20px] text-red-500">picture_as_pdf</span>
+          </div>
+          
+          <div className="mb-6 p-4 rounded-4 bg-red-500/10 border border-red-500/20 group-hover/btn:bg-red-500 group-hover/btn:text-white transition-colors">
+            {isExportingPdf ? (
+              <div className="w-12 h-12 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <span className="material-symbols-outlined text-[14px] text-red-500 group-hover/btn:text-white">description</span>
+            )}
+          </div>
+          
+          <span className="text-white font-bold text-[12px] leading-none">Analytical Report</span>
+          <span className="text-[9px] text-text-muted mt-1">PDF • {selectedYear ? 'Archive' : 'Live'}</span>
+          
+          <div className="mt-8 w-full flex items-center justify-between text-[8px] font-mono text-red-400 opacity-0 group-hover/btn:opacity-100 transition-opacity">
+            <span>START_GEN</span>
+            <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+          </div>
+        </button>
+
+        {/* Data Export Card - More compact */}
+        <button
+          onClick={selectedYear ? handleHistoricalGeoJsonDownload : handleLiveGeoJsonDownload}
+          disabled={selectedYear ? isHistoricalDisabled : isLiveDisabled}
+          className="relative group/btn flex flex-col items-start p-10 rounded-6 bg-white/5 border border-white/10 hover:border-accent-primary/40 hover:bg-accent-primary/5 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed text-left overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/btn:opacity-40 transition-opacity">
+            <span className="material-symbols-outlined text-[20px] text-blue-500">polyline</span>
+          </div>
+
+          <div className="mb-6 p-4 rounded-4 bg-blue-500/10 border border-blue-500/20 group-hover/btn:bg-blue-500 group-hover/btn:text-white transition-colors">
+            <span className="material-symbols-outlined text-[14px] text-blue-500 group-hover/btn:text-white">database</span>
+          </div>
+          
+          <span className="text-white font-bold text-[12px] leading-none">Geospatial Data</span>
+          <span className="text-[9px] text-text-muted mt-1">GeoJSON • Vector</span>
+
+          <div className="mt-8 w-full flex items-center justify-between text-[8px] font-mono text-blue-400 opacity-0 group-hover/btn:opacity-100 transition-opacity">
+            <span>EXTRACT_VEC</span>
+            <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+          </div>
+        </button>
       </div>
+
+      <div className="mt-16 pt-12 border-t border-white/5 flex items-center gap-8 text-[10px] text-text-muted italic">
+        <span className="material-symbols-outlined text-[12px]">verified_user</span>
+        <p>Verified SAR Extraction Pipelines Active</p>
+      </div>
+
+      {/* Background decoration */}
+      <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-accent-primary/5 rounded-full blur-2xl pointer-events-none"></div>
     </div>
   );
 }

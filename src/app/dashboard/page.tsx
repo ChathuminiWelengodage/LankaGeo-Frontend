@@ -151,49 +151,60 @@ function DashboardContent() {
 
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
-          {/* Map Section */}
-          <div className="lg:col-span-8 h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
-            <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} />
-            
-            <AnalysisLoadingOverlay 
-              isLoading={isLoading} 
-              message={loadingMessage} 
-              error={error} 
-              onRetry={startAnalysis}
+          {/* Map & Export Section */}
+          <div className="lg:col-span-8 space-y-32">
+            <div className="h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
+              <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} />
+              
+              <AnalysisLoadingOverlay 
+                isLoading={isLoading} 
+                message={loadingMessage} 
+                error={error} 
+                onRetry={startAnalysis}
+              />
+
+              {/* Scanning Effect Overlay */}
+              {isLoading && (
+                <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#14B8A6]/10 to-transparent h-1/2 w-full animate-scan"></div>
+                  <div className="absolute inset-0 bg-[#14B8A6]/5 animate-pulse"></div>
+                </div>
+              )}
+
+              {!geoJsonData && !isLoading && !error && (
+                <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40 backdrop-blur-[2px]">
+                  {coordinates ? (
+                    <div className="text-center">
+                      <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
+                      <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
+                      <p className="text-accent-primary font-mono mt-4">
+                        {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center opacity-40">
+                      <span className="material-symbols-outlined text-[64px] mb-16">map</span>
+                      <p>Initialize monitoring by selecting a location</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Decorative corners */}
+              <div className="absolute top-16 left-16 w-32 h-32 border-t-2 border-l-2 border-white/10 pointer-events-none"></div>
+              <div className="absolute top-16 right-16 w-32 h-32 border-t-2 border-r-2 border-white/10 pointer-events-none"></div>
+              <div className="absolute bottom-16 left-16 w-32 h-32 border-b-2 border-l-2 border-white/10 pointer-events-none"></div>
+              <div className="absolute bottom-16 right-16 w-32 h-32 border-b-2 border-r-2 border-white/10 pointer-events-none"></div>
+            </div>
+
+            <ExportPanel 
+              isLoading={isLoading}
+              geoJsonData={geoJsonData}
+              selectedYear={selectedYear}
+              currentData={currentData}
+              yearsData={yearsData}
+              locationName={locationName}
             />
-
-            {/* Scanning Effect Overlay */}
-            {isLoading && (
-              <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#14B8A6]/10 to-transparent h-1/2 w-full animate-scan"></div>
-                <div className="absolute inset-0 bg-[#14B8A6]/5 animate-pulse"></div>
-              </div>
-            )}
-
-            {!geoJsonData && !isLoading && !error && (
-              <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40">
-                {coordinates ? (
-                  <div className="text-center">
-                    <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
-                    <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
-                    <p className="text-accent-primary font-mono mt-4">
-                      {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center opacity-40">
-                    <span className="material-symbols-outlined text-[64px] mb-16">map</span>
-                    <p>Initialize monitoring by selecting a location</p>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Decorative corners */}
-            <div className="absolute top-16 left-16 w-32 h-32 border-t-2 border-l-2 border-white/10 pointer-events-none"></div>
-            <div className="absolute top-16 right-16 w-32 h-32 border-t-2 border-r-2 border-white/10 pointer-events-none"></div>
-            <div className="absolute bottom-16 left-16 w-32 h-32 border-b-2 border-l-2 border-white/10 pointer-events-none"></div>
-            <div className="absolute bottom-16 right-16 w-32 h-32 border-b-2 border-r-2 border-white/10 pointer-events-none"></div>
           </div>
 
           {/* Side Panel */}
@@ -257,15 +268,6 @@ function DashboardContent() {
             </div>
 
             <FFITrendChart />
-
-            <ExportPanel 
-              isLoading={isLoading}
-              geoJsonData={geoJsonData}
-              selectedYear={selectedYear}
-              currentData={currentData}
-              yearsData={yearsData}
-              locationName={locationName}
-            />
 
             <div className="card-standard">
               <h3 className="text-white text-[18px] mb-16">Macro Metric Coverage</h3>
