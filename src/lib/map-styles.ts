@@ -7,7 +7,7 @@ export const SEVERITY_COLORS = {
 export type SeverityLevel = keyof typeof SEVERITY_COLORS;
 
 export const MAP_STYLES = {
-  fillOpacity: 0.7,
+  fillOpacity: 0.5,
   strokeWeight: 2,
   strokeOpacity: 0.8,
 };

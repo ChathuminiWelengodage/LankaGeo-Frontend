@@ -32,6 +32,7 @@ function DashboardContent() {
     return null;
   });
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
+  const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
   const { currentData, selectedYear, yearsData } = useHistorical();
   
   // Handle Offline/Online Status
@@ -92,6 +93,7 @@ function DashboardContent() {
         setIsLoading(false);
       } else {
         setGeoJsonData(MOCK_GEOJSON);
+        setTileUrl('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&opacity=0.4');
         setIsLoading(false);
       }
     }, simulationDuration);
@@ -154,7 +156,7 @@ function DashboardContent() {
           {/* Map & Export Section */}
           <div className="lg:col-span-8 space-y-32">
             <div className="h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
-              <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} />
+              <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} tileUrl={tileUrl} />
               
               <AnalysisLoadingOverlay 
                 isLoading={isLoading} 
@@ -172,7 +174,7 @@ function DashboardContent() {
               )}
 
               {!geoJsonData && !isLoading && !error && (
-                <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40 backdrop-blur-[2px]">
+                <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40">
                   {coordinates ? (
                     <div className="text-center">
                       <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
