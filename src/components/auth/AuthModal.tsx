@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -19,17 +19,45 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setError(null);
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const validateSignup = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return "Invalid email address";
+    if (password.length < 8) return "Password must be at least 8 characters long";
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      return "Password must contain uppercase, lowercase, number, and special character";
+    }
+    if (password !== confirmPassword) return "Passwords do not match";
+    return null;
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    if (mode === 'signup' && password !== confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
+    if (mode === 'signup') {
+      const validationError = validateSignup();
+      if (validationError) {
+        setError(validationError);
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -99,38 +127,55 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           </h4>
 
           <form onSubmit={handleAuth} className="space-y-24">
-            <div className="carbon-input-container h-48">
+            <div className="carbon-input-container h-48 border border-white/20 rounded-4 focus-within:border-accent-primary flex items-center px-16 bg-sys-layer-01">
+              <span className="material-symbols-outlined text-text-muted mr-8">mail</span>
               <input 
                 type="email" 
                 placeholder={mode === 'login' ? 'youremail@gmail.com' : 'youremail@gmail.com'}
-                className="carbon-input"
+                className="carbon-input bg-transparent"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
 
-            <div className="carbon-input-container h-48">
+            <div className="carbon-input-container h-48 border border-white/20 rounded-4 focus-within:border-accent-primary flex items-center px-16 bg-sys-layer-01">
+              <span className="material-symbols-outlined text-text-muted mr-8">lock</span>
               <input 
-                type="password" 
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                className="carbon-input"
+                className="carbon-input bg-transparent"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-text-muted hover:text-text-primary ml-8"
+              >
+                <span className="material-symbols-outlined">{showPassword ? "visibility_off" : "visibility"}</span>
+              </button>
             </div>
 
             {mode === 'signup' && (
-              <div className="carbon-input-container h-48">
+              <div className="carbon-input-container h-48 border border-white/20 rounded-4 focus-within:border-accent-primary flex items-center px-16 bg-sys-layer-01">
+                <span className="material-symbols-outlined text-text-muted mr-8">lock</span>
                 <input 
-                  type="password" 
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm Password"
-                  className="carbon-input"
+                  className="carbon-input bg-transparent"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
+                <button 
+                  type="button" 
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="text-text-muted hover:text-text-primary ml-8"
+                >
+                  <span className="material-symbols-outlined">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
+                </button>
               </div>
             )}
 
