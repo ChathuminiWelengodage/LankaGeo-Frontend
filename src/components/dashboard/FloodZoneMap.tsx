@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Map, useMap } from '@vis.gl/react-google-maps';
+import { Map, useMap, MapControl, ControlPosition } from '@vis.gl/react-google-maps';
 import { useFloodData } from '@/hooks/useFloodData';
 import MapToggleControls from './controls/MapToggleControls';
 import { useHistorical } from '@/context/HistoricalContext';
 import HydrologicalStations from './HydrologicalStations';
+import MapLegend from './MapLegend';
 
 interface FloodZoneMapProps {
   center: { lat: number; lng: number } | null;
@@ -66,6 +67,9 @@ export default function FloodZoneMap({ center, geoJsonData }: FloodZoneMapProps)
         className="w-full h-full"
       >
         <HydrologicalStations />
+        <MapControl position={ControlPosition.LEFT_BOTTOM}>
+          <MapLegend />
+        </MapControl>
       </Map>
 
       <MapToggleControls 
