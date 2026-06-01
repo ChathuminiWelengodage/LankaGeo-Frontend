@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 
 export default function LandingPage() {
   return (
@@ -12,7 +11,7 @@ export default function LandingPage() {
           <img 
             alt="Hero Satellite Imagery" 
             className="w-full h-full object-cover opacity-70 mix-blend-lighten" 
-            src="/Images/screen.png"
+            src="/images/screen.png"
           />
           <div className="absolute inset-0 bg-gradient-to-tr from-[#11131c] via-[#11131c]/80 to-transparent"></div>
         </div>

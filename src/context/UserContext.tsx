@@ -8,6 +8,12 @@ interface UserContextType {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  authModal: {
+    isOpen: boolean;
+    mode: 'login' | 'signup';
+    open: (mode?: 'login' | 'signup') => void;
+    close: () => void;
+  };
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -15,6 +21,8 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -60,8 +68,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const authModal = {
+    isOpen: isAuthModalOpen,
+    mode: authModalMode,
+    open: (mode: 'login' | 'signup' = 'login') => {
+      setAuthModalMode(mode);
+      setIsAuthModalOpen(true);
+    },
+    close: () => setIsAuthModalOpen(false)
+  };
+
   return (
-    <UserContext.Provider value={{ user, loading, signOut }}>
+    <UserContext.Provider value={{ user, loading, signOut, authModal }}>
       {children}
     </UserContext.Provider>
   );

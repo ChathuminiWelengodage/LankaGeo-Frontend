@@ -2,7 +2,21 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  reactCompiler: true,
+    reactCompiler: true,
+  
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'maps.googleapis.com',
+        pathname: '/maps/api/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      }
+    ],
+  },
 };
 
 export default nextConfig;

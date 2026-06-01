@@ -1,0 +1,21 @@
+:root {
+  /* Color Palette */
+  --color-bg-primary: #ffffff;
+  --color-bg-surface: #f8f9fa;
+  --color-border: #e9ecef;
+  --color-text-main: #212529;
+  --color-text-muted: #6c757d;
+
+  /* Status & Risk Indicators */
+  --color-critical: #dc3545;       /* Red */
+  --color-moderate: #ffc107;       /* Amber */
+  --color-seasonal: #4a90e2;       /* Blue-grey / Light Blue */
+  --color-station: #495057;        /* Dark Grey */
+  --color-boundary: #008080;       /* Teal */
+
+  /* Typography & Layout */
+  --font-main: system-ui, -apple-system, sans-serif;
+  --radius-md: 8px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+}

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme.css";
 
 @theme {
   --color-sys-bg-base: #161616;
@@ -13,6 +14,23 @@
   --color-accent-light: #78a9ff;
   --color-ruby-alert: #da1e28;
   --color-magenta-glow: #f96bee;
+
+  /* New UI Component Library Tokens */
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-border: var(--color-border);
+  --color-text-main: var(--color-text-main);
+  --color-text-muted-alt: var(--color-text-muted); /* Renamed to avoid collision with existing --color-text-muted */
+  --color-critical: var(--color-critical);
+  --color-moderate: var(--color-moderate);
+  --color-seasonal: var(--color-seasonal);
+  --color-station: var(--color-station);
+  --color-boundary: var(--color-boundary);
+
+  --font-main: var(--font-main);
+  --radius-md: var(--radius-md);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
 
   /* Support for existing components like Footer */
   --color-surface-dim: #111111;
@@ -47,6 +65,31 @@
   --shadow-elevated: 0 12px 24px -8px rgba(0,0,0,0.6), 0 4px 12px rgba(15,98,254,0.1);
   --shadow-floating: 0 24px 48px -12px rgba(0,0,0,0.8), 0 12px 32px rgba(15,98,254,0.15);
   --shadow-blue-glow: 0 4px 12px rgba(15,98,254,0.3);
+
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-zoom-in: zoom-in 0.5s ease-out;
+  --animate-slide-in-from-top: slide-in-from-top 0.5s ease-out;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes zoom-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slide-in-from-top {
+    from { transform: translateY(-1rem); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes loading-bar {
+    0% { width: 0%; }
+    20% { width: 15%; }
+    40% { width: 45%; }
+    60% { width: 75%; }
+    80% { width: 90%; }
+    100% { width: 98%; }
+  }
 }
 
 html, body {
@@ -102,5 +145,28 @@ html, body {
     @apply bg-sys-layer-01 border border-white/5 rounded-6 p-24 shadow-dual 
            transition-all duration-300 hover:bg-sys-layer-02 hover:border-accent-primary/30 
            hover:-translate-y-[2px] hover:shadow-floating;
+  }
+
+  .interactive-glow {
+    @apply transition-all duration-300 hover:shadow-[0_0_20px_rgba(15,98,254,0.2)] hover:border-white/20;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  .animate-scan {
+    animation: scan 3s linear infinite;
+  }
+
+  @keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(200%); }
   }
 }
