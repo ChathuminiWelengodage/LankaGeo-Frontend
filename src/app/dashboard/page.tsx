@@ -9,7 +9,7 @@ import HistoricalYearStepper from '@/components/dashboard/HistoricalYearStepper'
 import FFITrendChart from '@/components/dashboard/FFITrendChart';
 import ExportPanel from '@/components/dashboard/ExportPanel';
 import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverlay';
-import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
+import { apiFetch, ApiError } from '@/lib/api';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -27,6 +27,7 @@ function DashboardContent() {
   const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(PROGRESS_MESSAGES[0]);
+  const [validationError, setValidationError] = useState<string>('');
   const [error, setError] = useState<'timeout' | 'offline' | null>(() => {
     if (typeof window !== 'undefined' && !navigator.onLine) return 'offline';
     return null;
@@ -71,30 +72,52 @@ function DashboardContent() {
     };
   }, [isLoading, error]);
 
-  const startAnalysis = () => {
+  const startAnalysis = async () => {
     if (!navigator.onLine) {
       setError('offline');
       return;
     }
 
+    if (!coordinates) return;
+
     setIsLoading(true);
     setLoadingMessage(PROGRESS_MESSAGES[0]);
     setError(null);
+    setValidationError('');
     setGeoJsonData(null);
 
-    // Simulate API delay with possible timeout
-    const simulationDuration = 15000; // 15 seconds as per specs
-    
-    setTimeout(() => {
-      // 10% chance to simulate a timeout error
-      if (Math.random() < 0.1) {
-        setError('timeout');
-        setIsLoading(false);
+    try {
+      const data = await apiFetch('/analyze/live', {
+        method: 'POST',
+        body: JSON.stringify({
+          latitude: coordinates.lat,
+          longitude: coordinates.lng,
+          location_name: locationName
+        })
+      });
+
+      setGeoJsonData(data);
+    } catch (err) {
+      console.error('Analysis failed:', err);
+      
+      if (err instanceof ApiError) {
+        if (err.status === 422) {
+          setValidationError(err.message);
+        } else if (err.status === 504) {
+          setError('timeout');
+        } else {
+          // Generic API error
+          setError('timeout'); // Defaulting to timeout/retry UI for server errors
+        }
+      } else if (err instanceof TypeError) {
+        // Network errors (e.g., fetch failed)
+        setError('offline');
       } else {
-        setGeoJsonData(MOCK_GEOJSON);
-        setIsLoading(false);
+        setError('timeout');
       }
-    }, simulationDuration);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLocationSelect = (coords: { lat: number; lng: number }, name: string) => {
@@ -102,9 +125,13 @@ function DashboardContent() {
     setLocationName(name);
     setGeoJsonData(null); // Clear previous analysis
     setError(null);
+    setValidationError('');
     console.log('Selected coordinates:', coords, 'Name:', name);
     // Automatically trigger analysis on location select as per SCRUM-99 requirement "Trigger: On search bar submission"
-    startAnalysis();
+    // Using a microtask or next tick to ensure state updates are processed
+    setTimeout(() => {
+      startAnalysis();
+    }, 0);
   };
 
   return (
@@ -127,6 +154,8 @@ function DashboardContent() {
               <LocationSearchBar 
                 onLocationSelect={handleLocationSelect}
                 isLoading={isLoading}
+                errorMessage={validationError}
+                onInputChange={() => setValidationError('')}
               />
             </div>
           </div>

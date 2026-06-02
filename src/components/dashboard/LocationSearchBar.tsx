@@ -6,13 +6,20 @@ import { useMapsLibrary } from '@vis.gl/react-google-maps';
 interface LocationSearchBarProps {
   onLocationSelect: (coords: { lat: number; lng: number }, name: string) => void;
   isLoading?: boolean;
+  errorMessage?: string;
+  onInputChange?: () => void;
 }
 
 /**
  * LocationSearchBar component providing Google Places autocomplete functionality.
  * Restricted to Sri Lanka (LK) and debounced at 300ms.
  */
-export default function LocationSearchBar({ onLocationSelect, isLoading = false }: LocationSearchBarProps) {
+export default function LocationSearchBar({ 
+  onLocationSelect, 
+  isLoading = false,
+  errorMessage,
+  onInputChange
+}: LocationSearchBarProps) {
   const placesLibrary = useMapsLibrary('places');
   const [inputValue, setInputValue] = useState('');
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -119,13 +126,14 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
           onChange={(e) => {
             const value = e.target.value;
             setInputValue(value);
+            if (onInputChange) onInputChange();
             if (value.length <= 2) {
               setPredictions([]);
               setIsDropdownOpen(false);
             }
           }}
           placeholder="Search location in Sri Lanka..."
-          className="carbon-input"
+          className={`carbon-input ${errorMessage ? 'border-ruby-alert/50' : ''}`}
           disabled={isLoading}
           onBlur={() => {
             // Delay closing dropdown to allow click events on suggestions
@@ -141,6 +149,13 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
           </div>
         )}
       </div>
+
+      {errorMessage && (
+        <div className="mt-4 px-4 flex items-center gap-6 animate-in fade-in slide-in-from-top-1 duration-300">
+          <span className="material-symbols-outlined text-ruby-alert text-[14px]">error</span>
+          <p className="text-ruby-alert text-[12px] font-medium">{errorMessage}</p>
+        </div>
+      )}
 
       {isDropdownOpen && predictions.length > 0 && (
         <div className="absolute top-full left-0 w-full mt-4 bg-sys-layer-02 border border-white/10 rounded-4 shadow-floating z-50 overflow-hidden">

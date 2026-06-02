@@ -8,6 +8,21 @@ import { MOCK_LIVE_GAUGES, LiveGaugeData } from './mock-flood-data';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
+/**
+ * Custom error class for API failures that includes the status code and response data.
+ */
+export class ApiError extends Error {
+  status: number;
+  data: any;
+
+  constructor(message: string, status: number, data: any = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
 export async function apiFetch(endpoint: string, options: RequestInit & { responseType?: 'json' | 'blob' } = {}) {
   const { responseType = 'json', ...fetchOptions } = options;
   const url = `${BACKEND_URL}${endpoint}`;
@@ -32,7 +47,11 @@ export async function apiFetch(endpoint: string, options: RequestInit & { respon
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `API request failed with status ${response.status}`);
+    throw new ApiError(
+      errorData.message || `API request failed with status ${response.status}`,
+      response.status,
+      errorData
+    );
   }
 
   if (responseType === 'blob') {
