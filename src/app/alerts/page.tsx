@@ -11,11 +11,15 @@ export default function AlertDashboard() {
   useEffect(() => {
     async function checkConnection() {
       try {
+        setBackendStatus('loading');
         const data = await apiFetch('/api/v1/auth/me');
         console.log('User data loaded:', data);
         setBackendStatus('connected');
       } catch (err) {
-        console.error('Backend connection failed:', err);
+        console.error('Backend connection failed details:', {
+          message: err instanceof Error ? err.message : 'Unknown error',
+          url: process.env.NEXT_PUBLIC_BACKEND_URL
+        });
         setBackendStatus('error');
       }
     }
