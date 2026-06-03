@@ -6,7 +6,15 @@ import HistoricalYearStepper from './HistoricalYearStepper';
 import HistoricalStatsCard from './HistoricalStatsCard';
 
 export default function HistoricalRiskView() {
-  const { currentData, selectedYear } = useHistorical();
+  const { 
+    currentData, 
+    selectedYear, 
+    isTrendLoading, 
+    trendError, 
+    fetchTrendData, 
+    lastCoordinates, 
+    dismissTrendError 
+  } = useHistorical();
 
   // Mock severity breakdown based on total zones
   const getSeverityBreakdown = (total: number) => {
@@ -19,7 +27,53 @@ export default function HistoricalRiskView() {
   const { critical, moderate, low } = getSeverityBreakdown(currentData.total_zones);
 
   return (
-    <div className="flex flex-col space-y-24 p-24">
+    <div className="flex flex-col space-y-24 p-24 relative">
+      {/* Error Banners */}
+      {trendError === 'timeout' && (
+        <div className="bg-ruby-alert/10 border border-ruby-alert/30 p-12 rounded-8 flex items-start gap-12 animate-in fade-in slide-in-from-top-4">
+          <span className="material-symbols-outlined text-ruby-alert text-[20px]">timer</span>
+          <div className="flex-1">
+            <h4 className="text-ruby-alert text-[13px] font-bold">Analysis Timed Out</h4>
+            <p className="text-text-secondary text-[12px] mt-4">The historical trend analysis took too long to respond.</p>
+          </div>
+          <div className="flex flex-col gap-8">
+             <button onClick={dismissTrendError} className="text-text-muted hover:text-white transition-colors">
+               <span className="material-symbols-outlined text-[18px]">close</span>
+             </button>
+             {lastCoordinates && (
+               <button 
+                 onClick={() => fetchTrendData(lastCoordinates.lat, lastCoordinates.lng)}
+                 className="text-ruby-alert text-[11px] font-bold uppercase tracking-wider hover:underline"
+               >
+                 Retry
+               </button>
+             )}
+          </div>
+        </div>
+      )}
+
+      {trendError === 'generic' && (
+        <div className="bg-ruby-alert/10 border border-ruby-alert/30 p-12 rounded-8 flex items-start gap-12 animate-in fade-in slide-in-from-top-4">
+          <span className="material-symbols-outlined text-ruby-alert text-[20px]">error</span>
+          <div className="flex-1">
+            <h4 className="text-ruby-alert text-[13px] font-bold">Failed to Load Data</h4>
+            <p className="text-text-secondary text-[12px] mt-4">We could not retrieve the historical trend data.</p>
+          </div>
+          <button onClick={dismissTrendError} className="text-text-muted hover:text-white transition-colors">
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {isTrendLoading && (
+        <div className="absolute inset-0 z-10 bg-sys-layer-01/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-8 animate-in fade-in duration-300 border border-white/5 m-4">
+           <div className="w-40 h-40 border-4 border-[#14B8A6]/20 border-t-[#14B8A6] rounded-full animate-spin mb-16"></div>
+           <p className="text-white font-medium text-[14px]">Analyzing Historical Trends...</p>
+           <p className="text-text-secondary text-[12px] font-mono mt-4">Compiling 5-year data</p>
+        </div>
+      )}
+
       {/* Source Chip */}
       <div className="flex">
         <div className="px-12 py-6 bg-white/5 border border-white/10 rounded-full flex items-center gap-8">

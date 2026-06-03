@@ -36,7 +36,7 @@ function DashboardContent() {
   });
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const { currentData, selectedYear, yearsData, viewMode } = useHistorical();
+  const { currentData, selectedYear, yearsData, viewMode, fetchTrendData } = useHistorical();
   
   // Handle Offline/Online Status
   useEffect(() => {
@@ -136,6 +136,7 @@ function DashboardContent() {
     // Using a microtask or next tick to ensure state updates are processed
     setTimeout(() => {
       startAnalysis();
+      fetchTrendData(coords.lat, coords.lng);
     }, 0);
   };
 
