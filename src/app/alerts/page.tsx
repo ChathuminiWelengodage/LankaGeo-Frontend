@@ -6,14 +6,20 @@ import { useUser } from '@/context/UserContext';
 import { apiFetch } from '@/lib/api';
 
 export default function AlertDashboard() {
-  const { user } = useUser();
+  const { user, authModal, loading } = useUser();
   const [backendStatus, setBackendStatus] = useState<'loading' | 'connected' | 'error'>('loading');
+  
   useEffect(() => {
     async function checkConnection() {
+      if (!user) {
+        setBackendStatus('connected');
+        return;
+      }
+      
       try {
         setBackendStatus('loading');
-        const data = await apiFetch('/api/v1/auth/me');
-        console.log('User data loaded:', data);
+        // Check connection but handle unauth state for public preview
+        await apiFetch('/api/v1/auth/me').catch(() => null);
         setBackendStatus('connected');
       } catch (err) {
         console.error('Backend connection failed details:', {
@@ -24,9 +30,7 @@ export default function AlertDashboard() {
       }
     }
     
-    if (user) {
-      checkConnection();
-    }
+    checkConnection();
   }, [user]);
 
   const [phone, setPhone] = useState('');
@@ -36,6 +40,12 @@ export default function AlertDashboard() {
 
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      authModal.open('signup');
+      return;
+    }
+
     setIsUpdating(true);
     setSaveStatus('idle');
     
@@ -45,18 +55,79 @@ export default function AlertDashboard() {
       console.log('Saving preferences:', { phone, email: notifEmail });
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
-    } catch (err) {
+    } catch {
       setSaveStatus('error');
     } finally {
       setIsUpdating(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-sys-bg-base">
+        <div className="animate-pulse text-accent-primary font-mono text-sm tracking-widest">
+          INITIALIZING SECURE TERMINAL...
+        </div>
+      </div>
+    );
+  }
+
+  // If user is not logged in, show the Public Informational View
+  if (!user) {
+    return (
+      <SubscriptionGuard>
+        <main className="min-h-screen bg-sys-bg-base py-96 px-24 md:px-48">
+          <div className="max-w-[1152px] mx-auto">
+            <div className="max-w-[800px] mb-64">
+              <h1 className="mb-24">Join the LankaGeo Surveillance Network</h1>
+              <p className="text-xl text-text-secondary leading-relaxed">
+                While basic analysis is public, our advanced alert system is reserved for verified responders and high-risk regional stakeholders.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-32 mb-64">
+              <BenefitCard 
+                title="SMS Disaster Alerts"
+                description="Receive immediate SMS notifications when flood thresholds are breached in your specific GPS coordinates."
+                icon="📱"
+              />
+              <BenefitCard 
+                title="Custom Risk Zones"
+                description="Define up to 5 custom monitoring zones and receive automated SAR delta reports weekly."
+                icon="🎯"
+              />
+              <BenefitCard 
+                title="Priority Data Access"
+                description="Access high-resolution raw satellite telemetry and historical change-detection archives."
+                icon="⚡"
+              />
+            </div>
+
+            <div className="bg-sys-layer-01 border border-accent-primary/20 rounded-8 p-48 text-center max-w-[700px] mx-auto shadow-floating">
+              <h2 className="text-2xl mb-16">Ready to secure your region?</h2>
+              <p className="text-text-secondary mb-32">
+                Create a free account to initialize your personal alert dashboard and start receiving real-time surveillance data.
+              </p>
+              <div className="flex justify-center gap-16">
+                <button 
+                  onClick={() => authModal.open('signup')}
+                  className="btn-primary"
+                >
+                  Initialize Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </SubscriptionGuard>
+    );
+  }
+
+  // Authenticated Operator View
   return (
     <SubscriptionGuard>
       <main className="min-h-screen bg-sys-bg-base py-96 px-24 md:px-48 text-text-primary">
         <div className="max-w-[1152px] mx-auto">
-          {/* ... existing header code ... */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-64 gap-24">
             <div>
               <div className="text-xs font-mono text-accent-light mb-8 tracking-widest uppercase flex items-center gap-8">
@@ -74,11 +145,12 @@ export default function AlertDashboard() {
                 )}
               </div>
               <h1 className="mb-8">Alert Dashboard</h1>
-              <p className="text-text-secondary">Welcome back, {user?.email}. Surveillance active for your assigned zones.</p>
+              <p className="text-text-secondary">
+                Welcome back, {user.email}. Surveillance active for your assigned zones.
+              </p>
             </div>
             <div className="flex gap-16">
               <button className="btn-secondary text-sm">Update Zones</button>
-              <button className="btn-primary text-sm">New Subscription</button>
             </div>
           </div>
 
@@ -170,6 +242,16 @@ export default function AlertDashboard() {
         </div>
       </main>
     </SubscriptionGuard>
+  );
+}
+
+function BenefitCard({ title, description, icon }: { title: string; description: string; icon: string }) {
+  return (
+    <div className="bg-sys-layer-01 border border-white/5 rounded-6 p-32 hover:border-accent-primary/30 transition-all">
+      <div className="text-4xl mb-24">{icon}</div>
+      <h3 className="text-lg font-bold mb-12">{title}</h3>
+      <p className="text-sm text-text-muted leading-relaxed">{description}</p>
+    </div>
   );
 }
 
