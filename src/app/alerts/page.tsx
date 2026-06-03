@@ -29,10 +29,34 @@ export default function AlertDashboard() {
     }
   }, [user]);
 
+  const [phone, setPhone] = useState('');
+  const [notifEmail, setNotifEmail] = useState(user?.email || '');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleSavePreferences = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    setSaveStatus('idle');
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('Saving preferences:', { phone, email: notifEmail });
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (err) {
+      setSaveStatus('error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <SubscriptionGuard>
-      <main className="min-h-screen bg-sys-bg-base py-96 px-24 md:px-48">
+      <main className="min-h-screen bg-sys-bg-base py-96 px-24 md:px-48 text-text-primary">
         <div className="max-w-[1152px] mx-auto">
+          {/* ... existing header code ... */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-64 gap-24">
             <div>
               <div className="text-xs font-mono text-accent-light mb-8 tracking-widest uppercase flex items-center gap-8">
@@ -79,21 +103,69 @@ export default function AlertDashboard() {
           </div>
 
           <div className="bg-sys-layer-01 border border-white/5 rounded-6 p-32">
-            <h3 className="text-sm font-bold mb-24 text-text-muted uppercase tracking-widest">Account & Notification Settings</h3>
-            <div className="flex flex-col md:flex-row gap-48">
-              <div>
-                <label className="block text-xs text-text-muted mb-8 font-mono">SMS Notification Number</label>
-                <div className="text-text-primary font-mono">+94 77 ••• ••89</div>
+            <h3 className="text-sm font-bold mb-24 text-text-muted uppercase tracking-widest">Notification Channels</h3>
+            <form onSubmit={handleSavePreferences} className="space-y-32">
+              <div className="grid md:grid-cols-2 gap-32">
+                <div>
+                  <label className="block text-xs text-text-muted mb-12 font-mono uppercase tracking-wider">SMS Alert Number</label>
+                  <div className="carbon-input-container h-48 border border-white/10 rounded-4 focus-within:border-accent-primary flex items-center px-16 bg-sys-bg-base">
+                    <span className="material-symbols-outlined text-text-muted mr-12 text-[20px]">smartphone</span>
+                    <input 
+                      type="tel" 
+                      placeholder="+94 77 000 0000"
+                      className="carbon-input bg-transparent text-sm font-mono"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <p className="mt-8 text-[10px] text-text-muted italic">International format required for reliable delivery.</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-text-muted mb-12 font-mono uppercase tracking-wider">Priority Alert Email</label>
+                  <div className="carbon-input-container h-48 border border-white/10 rounded-4 focus-within:border-accent-primary flex items-center px-16 bg-sys-bg-base">
+                    <span className="material-symbols-outlined text-text-muted mr-12 text-[20px]">alternate_email</span>
+                    <input 
+                      type="email" 
+                      placeholder="alerts@company.com"
+                      className="carbon-input bg-transparent text-sm font-mono"
+                      value={notifEmail}
+                      onChange={(e) => setNotifEmail(e.target.value)}
+                    />
+                  </div>
+                  <p className="mt-8 text-[10px] text-text-muted italic">This email will receive critical system overrides.</p>
+                </div>
               </div>
-              <div>
-                <label className="block text-xs text-text-muted mb-8 font-mono">Email Delivery</label>
-                <div className="text-text-primary font-mono">{user?.email}</div>
+
+              <div className="flex items-center justify-between border-t border-white/5 pt-24">
+                <div className="flex items-center gap-12">
+                  {saveStatus === 'success' && (
+                    <span className="text-emerald-400 text-xs flex items-center gap-4 animate-fade-in">
+                      <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                      Preferences Updated Successfully
+                    </span>
+                  )}
+                  {saveStatus === 'error' && (
+                    <span className="text-ruby-alert text-xs flex items-center gap-4 animate-fade-in">
+                      <span className="material-symbols-outlined text-[16px]">error</span>
+                      Failed to Update Preferences
+                    </span>
+                  )}
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isUpdating}
+                  className="btn-primary min-w-[160px] text-xs font-bold uppercase tracking-widest disabled:opacity-50"
+                >
+                  {isUpdating ? (
+                    <span className="flex items-center gap-8">
+                      <span className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                      Syncing...
+                    </span>
+                  ) : 'Update Channels'}
+                </button>
               </div>
-              <div>
-                <label className="block text-xs text-text-muted mb-8 font-mono">Subscription Plan</label>
-                <div className="text-accent-light font-mono">LankaGeo Pro / Tier-1</div>
-              </div>
-            </div>
+            </form>
           </div>
         </div>
       </main>

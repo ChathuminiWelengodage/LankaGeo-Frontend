@@ -6,10 +6,12 @@ import { HistoricalData, HISTORICAL_YEARS_DATA, COMPOSITE_FLOOD_DATA } from '@/l
 interface HistoricalContextType {
   selectedYear: number | null;
   isTransitioning: boolean;
+  viewMode: 'live' | 'historical';
   currentData: HistoricalData;
   yearsData: HistoricalData[];
   selectYear: (year: number | null) => void;
   setTransitioning: (val: boolean) => void;
+  setViewMode: (mode: 'live' | 'historical') => void;
 }
 
 const HistoricalContext = createContext<HistoricalContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ const HistoricalContext = createContext<HistoricalContextType | undefined>(undef
 export function HistoricalProvider({ children }: { children: ReactNode }) {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [isTransitioning, setTransitioning] = useState(false);
+  const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
 
   const yearsData = HISTORICAL_YEARS_DATA;
   
@@ -33,10 +36,12 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
   const value = {
     selectedYear,
     isTransitioning,
+    viewMode,
     currentData,
     yearsData,
     selectYear,
-    setTransitioning
+    setTransitioning,
+    setViewMode
   };
 
   return (

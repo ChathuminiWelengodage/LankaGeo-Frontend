@@ -5,10 +5,11 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
 import FloodZoneMap from '@/components/dashboard/FloodZoneMap';
 import ImpactAssessment from '@/components/dashboard/ImpactAssessment';
-import HistoricalYearStepper from '@/components/dashboard/HistoricalYearStepper';
-import FFITrendChart from '@/components/dashboard/FFITrendChart';
 import ExportPanel from '@/components/dashboard/ExportPanel';
 import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverlay';
+import SidebarTabs from '@/components/dashboard/SidebarTabs';
+import LiveFloodView from '@/components/dashboard/LiveFloodView';
+import HistoricalRiskView from '@/components/dashboard/HistoricalRiskView';
 import { apiFetch, ApiError } from '@/lib/api';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
@@ -35,7 +36,7 @@ function DashboardContent() {
   });
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const { currentData, selectedYear, yearsData } = useHistorical();
+  const { currentData, selectedYear, yearsData, viewMode } = useHistorical();
   
   // Handle Offline/Online Status
   useEffect(() => {
@@ -177,11 +178,6 @@ function DashboardContent() {
       </header>
 
       <main className="max-w-screen-2xl mx-auto px-24 md:px-48 py-32 space-y-32">
-        {/* Historical Timeline Controls */}
-        <div className="max-w-3xl animate-in fade-in slide-in-from-top-4 duration-700">
-          <HistoricalYearStepper />
-        </div>
-
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
           {/* Map & Export Section */}
@@ -241,79 +237,22 @@ function DashboardContent() {
           </div>
 
           {/* Side Panel */}
-          <div className="lg:col-span-4 space-y-24">
-            <div className="card-standard min-h-[300px] flex flex-col justify-between">
-              <div>
-                <h3 className="text-white text-[18px] mb-16 font-bold tracking-tight">
-                  {selectedYear ? `Historical Runoff: ${selectedYear}` : 'Analysis Parameters'}
-                </h3>
-                
-                {selectedYear ? (
-                  <div className="space-y-16 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <div className="flex justify-between items-center py-8 border-b border-white/5">
-                      <span className="text-text-secondary text-[13px]">Monitored Areas</span>
-                      <span className="text-white font-mono text-[13px]">{currentData.total_zones} Zone Nodes</span>
-                    </div>
-                    <div className="flex justify-between items-center py-8 border-b border-white/5">
-                      <span className="text-text-secondary text-[13px]">Flood Frequency Index</span>
-                      <span className={`font-mono text-[13px] px-8 py-2 rounded-4 ${
-                        currentData.flood_frequency_index > 0.7 ? 'bg-ruby-alert/20 text-ruby-alert' : 'bg-[#14B8A6]/20 text-[#14B8A6]'
-                      }`}>
-                        {currentData.flood_frequency_index.toFixed(2)} / 1.00
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-8 border-b border-white/5">
-                      <span className="text-text-secondary text-[13px]">Est. Max Area</span>
-                      <span className="text-white font-mono text-[13px]">{currentData.max_area_km2} km²</span>
-                    </div>
-                    <p className="text-text-muted text-[12px] leading-relaxed mt-16 italic">
-                      &quot;{currentData.impact_summary}&quot;
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-16">
-                    <div className="flex justify-between items-center py-8 border-b border-white/5">
-                      <span className="text-text-secondary text-[13px]">Satellite Path</span>
-                      <span className="text-white font-mono text-[13px]">DES-9284</span>
-                    </div>
-                    <div className="flex justify-between items-center py-8 border-b border-white/5">
-                      <span className="text-text-secondary text-[13px]">Orbit Type</span>
-                      <span className="text-white font-mono text-[13px]">Sun-Sync</span>
-                    </div>
-                    <div className="flex justify-between items-center py-8 border-b border-white/5">
-                      <span className="text-text-secondary text-[13px]">Resolution</span>
-                      <span className="text-white font-mono text-[13px]">0.5m GSD</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <button 
-                onClick={startAnalysis}
-                disabled={!coordinates || isLoading || !!selectedYear || error === 'offline'}
-                className="btn-primary w-full mt-24 disabled:opacity-50 disabled:cursor-not-allowed group"
-              >
-                <span className={`material-symbols-outlined mr-8 ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'} transition-transform duration-500`}>
-                  {isLoading ? 'progress_activity' : 'sync'}
-                </span>
-                {isLoading ? 'Processing SAR Data...' : 'Start Live Analysis'}
-              </button>
-            </div>
-
-            <FFITrendChart />
-
-            <div className="card-standard">
-              <h3 className="text-white text-[18px] mb-16">Macro Metric Coverage</h3>
-              <div className="space-y-12">
-                <div className="p-12 bg-[#14B8A6]/10 border-l-2 border-[#14B8A6] rounded-r-4">
-                  <p className="text-[#14B8A6] text-[13px] font-semibold">5-Year Resilience Composite</p>
-                  <p className="text-text-muted text-[11px] mt-4">Average FFI: 0.64</p>
-                </div>
-                <div className="p-12 bg-white/5 border-l-2 border-text-muted rounded-r-4">
-                  <p className="text-text-secondary text-[13px]">System Health: Optimal</p>
-                  <p className="text-text-muted text-[11px] mt-4">Last verify: Today, 08:30 AM</p>
-                </div>
-              </div>
+          <div className="lg:col-span-4 flex flex-col bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual">
+            <SidebarTabs />
+            
+            <div className="flex-grow custom-scrollbar overflow-y-auto overflow-x-hidden">
+              {viewMode === 'live' ? (
+                <LiveFloodView 
+                  isLoading={isLoading}
+                  startAnalysis={startAnalysis}
+                  coordinates={coordinates}
+                  error={error}
+                  selectedYear={selectedYear}
+                  currentData={currentData}
+                />
+              ) : (
+                <HistoricalRiskView />
+              )}
             </div>
           </div>
         </div>
