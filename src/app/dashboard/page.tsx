@@ -64,8 +64,9 @@ function DashboardContent() {
       }
 
       // Use the modern Place.searchByText API (Places API New)
-      const { places } = await google.maps.places.Place.searchByText({
+      const { places } = await placesLibrary.Place.searchByText({
         textQuery: query,
+        fields: ['location', 'displayName'],
         locationRestriction: {
           north: 9.85,
           south: 5.91,
