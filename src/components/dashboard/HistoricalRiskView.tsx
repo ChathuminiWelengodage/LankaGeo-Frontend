@@ -3,6 +3,7 @@
 import React from 'react';
 import { useHistorical } from '@/context/HistoricalContext';
 import HistoricalYearStepper from './HistoricalYearStepper';
+import HistoricalStatsCard from './HistoricalStatsCard';
 
 export default function HistoricalRiskView() {
   const { currentData, selectedYear } = useHistorical();
@@ -36,37 +37,7 @@ export default function HistoricalRiskView() {
       </div>
 
       {/* Stats Card */}
-      <div className="card-standard !p-16 space-y-16">
-        <h4 className="text-white text-[13px] font-bold uppercase tracking-wider flex items-center justify-between border-b border-white/5 pb-12">
-          <span>{selectedYear ? `${selectedYear} Metrics` : '5-Year Composite Metrics'}</span>
-          <span className="text-text-muted font-mono font-normal">RES-0.5m</span>
-        </h4>
-        
-        <div className="space-y-12">
-          <div className="flex justify-between items-center">
-            <span className="text-text-secondary text-[12px]">Flood Frequency Index</span>
-            <span className={`font-mono text-[13px] font-bold ${
-              currentData.flood_frequency_index > 0.7 ? 'text-ruby-alert' : 'text-[#14B8A6]'
-            }`}>
-              {currentData.flood_frequency_index.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-text-secondary text-[12px]">Impacted Area (Max)</span>
-            <span className="text-white font-mono text-[13px] font-bold">{currentData.max_area_km2} km²</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-text-secondary text-[12px]">Analysis Confidence</span>
-            <span className="text-[#14B8A6] font-mono text-[13px] font-bold">98.4%</span>
-          </div>
-        </div>
-
-        <div className="pt-12 mt-12 border-t border-white/5">
-          <p className="text-text-muted text-[11px] leading-relaxed italic">
-            &quot;{currentData.impact_summary}&quot;
-          </p>
-        </div>
-      </div>
+      <HistoricalStatsCard />
 
       {/* Flood Zones Breakdown */}
       <div className="space-y-16">
