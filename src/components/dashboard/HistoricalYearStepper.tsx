@@ -29,13 +29,13 @@ export default function HistoricalYearStepper() {
   const isLastYear = selectedYear === yearsData[yearsData.length - 1]?.year;
 
   return (
-    <div className="flex flex-col gap-12 w-full">
+    <div className="flex flex-col gap-6 w-full">
       <div className="relative group">
         <select
           value={selectedYear || ''}
           onChange={(e) => selectYear(e.target.value ? parseInt(e.target.value) : null)}
           disabled={isTransitioning}
-          className="w-full bg-sys-layer-01/50 border border-white/10 rounded-8 px-12 py-10 text-[16px] font-mono text-white appearance-none cursor-pointer focus:outline-none focus:border-[#14B8A6]/50 transition-all hover:bg-white/5 shadow-dual"
+          className="w-full h-11 bg-sys-layer-01/50 border border-white/10 rounded-8 px-12 text-[16px] font-mono text-white appearance-none cursor-pointer focus:outline-none focus:border-[#14B8A6]/50 transition-all hover:bg-white/5 shadow-dual flex items-center"
         >
           <option value="" className="bg-sys-layer-01 text-text-primary">5-Year Composite (Baseline)</option>
           {yearsData.map((data) => (

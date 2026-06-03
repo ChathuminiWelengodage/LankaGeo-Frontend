@@ -49,6 +49,8 @@ export interface HistoricalData {
   flood_frequency_index: number;
   impact_summary: string;
   max_area_km2: number;
+  pixels_flooded: number;
+  peak_flood_month: string;
 }
 
 export const HISTORICAL_YEARS_DATA: HistoricalData[] = [
@@ -58,7 +60,9 @@ export const HISTORICAL_YEARS_DATA: HistoricalData[] = [
     total_zones: 32,
     flood_frequency_index: 0.42,
     impact_summary: 'Significant runoff in western provinces during monsoon peak.',
-    max_area_km2: 88.4
+    max_area_km2: 88.4,
+    pixels_flooded: 124500,
+    peak_flood_month: 'June'
   },
   {
     year: 2021,
@@ -66,7 +70,9 @@ export const HISTORICAL_YEARS_DATA: HistoricalData[] = [
     total_zones: 28,
     flood_frequency_index: 0.58,
     impact_summary: 'Moderate inundation across north-central agricultural zones.',
-    max_area_km2: 76.2
+    max_area_km2: 76.2,
+    pixels_flooded: 108900,
+    peak_flood_month: 'May'
   },
   {
     year: 2022,
@@ -74,7 +80,9 @@ export const HISTORICAL_YEARS_DATA: HistoricalData[] = [
     total_zones: 42,
     flood_frequency_index: 0.88,
     impact_summary: 'High risk detected. Extreme precipitation events recorded.',
-    max_area_km2: 112.4
+    max_area_km2: 112.4,
+    pixels_flooded: 156300,
+    peak_flood_month: 'October'
   },
   {
     year: 2023,
@@ -82,7 +90,9 @@ export const HISTORICAL_YEARS_DATA: HistoricalData[] = [
     total_zones: 35,
     flood_frequency_index: 0.28,
     impact_summary: 'Urban flooding in Colombo metropolitan area significantly elevated.',
-    max_area_km2: 92.1
+    max_area_km2: 92.1,
+    pixels_flooded: 131000,
+    peak_flood_month: 'June'
   },
   {
     year: 2024,
@@ -90,7 +100,9 @@ export const HISTORICAL_YEARS_DATA: HistoricalData[] = [
     total_zones: 30,
     flood_frequency_index: 0.62,
     impact_summary: 'Steady frequency observed in southern river basins.',
-    max_area_km2: 82.5
+    max_area_km2: 82.5,
+    pixels_flooded: 115700,
+    peak_flood_month: 'September'
   }
 ];
 
@@ -100,7 +112,9 @@ export const COMPOSITE_FLOOD_DATA: HistoricalData = {
   total_zones: 167,
   flood_frequency_index: 0.64,
   impact_summary: 'Cumulative 5-year resilience composite showing macro trends.',
-  max_area_km2: 145.8
+  max_area_km2: 145.8,
+  pixels_flooded: 636400,
+  peak_flood_month: 'Multi-Peak'
 };
 
 // --- Hydrological Stations ---
