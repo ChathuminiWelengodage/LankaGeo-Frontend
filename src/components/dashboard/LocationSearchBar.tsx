@@ -84,12 +84,14 @@ export default function LocationSearchBar({
       const { Place } = await google.maps.importLibrary('places') as google.maps.PlacesLibrary;
       const place = new Place({ id: prediction.placeId });
       
-      await place.fetchFields({ fields: ['location'] });
+      await place.fetchFields({ 
+        fields: ['location', 'displayName'] 
+      });
       
       if (place.location) {
         const lat = place.location.lat();
         const lng = place.location.lng();
-        onLocationSelect({ lat, lng }, prediction.text.toString());
+        onLocationSelect({ lat, lng }, place.displayName || prediction.text.toString());
       }
     } catch (error) {
       console.error('Error fetching place details:', error);
@@ -123,6 +125,11 @@ export default function LocationSearchBar({
           }}
           onFocus={() => {
             if (predictions.length > 0) setIsDropdownOpen(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && predictions.length > 0) {
+              handleSelectPrediction(predictions[0]);
+            }
           }}
         />
         {isLoading && (

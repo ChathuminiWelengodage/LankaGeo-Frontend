@@ -50,7 +50,7 @@ const Navbar = () => {
             <Link 
               href="/dashboard" 
               className={`text-xs font-semibold uppercase tracking-wider transition-colors ${
-                pathname === '/dashboard' ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
+                pathname.startsWith('/dashboard') ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               Dashboard
@@ -58,7 +58,7 @@ const Navbar = () => {
             <Link 
               href="/alerts" 
               className={`text-xs font-semibold uppercase tracking-wider transition-colors ${
-                pathname === '/alerts' ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
+                pathname.startsWith('/alerts') ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               Alerts
@@ -66,7 +66,7 @@ const Navbar = () => {
             <Link 
               href="/case-studies" 
               className={`text-xs font-semibold uppercase tracking-wider transition-colors ${
-                pathname === '/case-studies' ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
+                pathname.startsWith('/case-studies') ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               Case Studies
@@ -80,15 +80,15 @@ const Navbar = () => {
                 className="bg-accent-primary hover:bg-accent-hover text-white h-32 px-12 rounded-4 text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-4 shadow-blue-glow active:scale-[0.95]"
               >
                 <span className="material-symbols-outlined text-[16px]">notifications</span>
-                Alerts
+                Get Alert
               </Link>
             ) : (
               <button 
-                onClick={() => authModal.open('login')}
+                onClick={() => authModal.open('signup')}
                 className="bg-accent-primary hover:bg-accent-hover text-white h-32 px-12 rounded-4 text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-4 shadow-blue-glow active:scale-[0.95]"
               >
                 <span className="material-symbols-outlined text-[16px]">notifications</span>
-                Alerts
+                Get Alert
               </button>
             )}
 
