@@ -10,7 +10,7 @@ import React from 'react';
  */
 export default function MapLegend() {
   return (
-    <div className="m-12 w-[180px] bg-sys-layer-01/95 backdrop-blur-md border border-white/10 rounded-6 p-12 shadow-md animate-fade-in">
+    <div className="m-8 w-[160px] bg-sys-layer-01/95 backdrop-blur-md border-[0.5px] border-white/10 rounded-4 p-8 shadow-md animate-fade-in">
       <h4 className="text-[10px] font-bold uppercase tracking-wider text-text-primary mb-8 flex items-center justify-between">
         Legend
         <span className="w-4 h-4 rounded-full bg-accent-primary/20 flex items-center justify-center">
@@ -23,7 +23,7 @@ export default function MapLegend() {
         <LegendItem color="#ffc107" label="Moderate Risk" />
         <LegendItem color="#4a90e2" label="Seasonal" />
         <LegendItem color="#495057" label="Station" />
-        
+
         <li className="flex items-center gap-8 group">
           <div className="w-16 h-1 border-t-2 border-dashed border-[#008080]"></div>
           <span className="text-[10px] text-text-secondary font-medium tracking-tight">
@@ -51,7 +51,7 @@ interface LegendItemProps {
 function LegendItem({ color, label }: LegendItemProps) {
   return (
     <li className="flex items-center gap-8 group cursor-default">
-      <div 
+      <div
         style={{ backgroundColor: color }}
         className="w-8 h-8 rounded-2 shadow-sm"
       ></div>
