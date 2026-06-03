@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
 
 interface LocationSearchBarProps {
   onLocationSelect: (coords: { lat: number; lng: number }, name: string) => void;
@@ -20,53 +19,34 @@ export default function LocationSearchBar({
   errorMessage,
   onInputChange
 }: LocationSearchBarProps) {
-  const placesLibrary = useMapsLibrary('places');
   const [inputValue, setInputValue] = useState('');
-  const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [predictions, setPredictions] = useState<google.maps.places.AutocompleteSuggestion[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
-  const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
-  const placesService = useRef<google.maps.places.PlacesService | null>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Google Maps services when the library is loaded
-  useEffect(() => {
-    if (!placesLibrary) return;
-    
-    if (!autocompleteService.current) {
-      autocompleteService.current = new placesLibrary.AutocompleteService();
-    }
-    
-    if (!placesService.current) {
-      // PlacesService requires a map instance or an HTML element
-      const dummyDiv = document.createElement('div');
-      placesService.current = new placesLibrary.PlacesService(dummyDiv);
-    }
-  }, [placesLibrary]);
-
   /**
-   * Fetches place predictions from Google Places API
+   * Fetches place predictions from Google Places API (New)
    */
-  const fetchPredictions = useCallback((input: string) => {
-    if (!autocompleteService.current || !input) {
+  const fetchPredictions = useCallback(async (input: string) => {
+    if (!input) {
       setPredictions([]);
       return;
     }
 
-    autocompleteService.current.getPlacePredictions(
-      {
+    try {
+      const { AutocompleteSuggestion } = await google.maps.importLibrary('places') as google.maps.PlacesLibrary;
+      const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
         input,
-        componentRestrictions: { country: 'lk' },
-      },
-      (results, status) => {
-        if (placesLibrary && status === placesLibrary.PlacesServiceStatus.OK && results) {
-          setPredictions(results);
-        } else {
-          setPredictions([]);
-        }
-      }
-    );
-  }, [placesLibrary]);
+        includedRegionCodes: ['LK'],
+      });
+      
+      setPredictions(suggestions);
+    } catch (error) {
+      console.error('Error fetching predictions:', error);
+      setPredictions([]);
+    }
+  }, []);
 
   /**
    * Effect to handle debouncing and prediction fetching
@@ -93,24 +73,26 @@ export default function LocationSearchBar({
   /**
    * Handles selection of a place from the dropdown
    */
-  const handleSelectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
-    setInputValue(prediction.description);
+  const handleSelectPrediction = async (suggestion: google.maps.places.AutocompleteSuggestion) => {
+    const prediction = suggestion.placePrediction;
+    if (!prediction) return;
+
+    setInputValue(prediction.text.toString());
     setIsDropdownOpen(false);
 
-    if (placesService.current && placesLibrary) {
-      placesService.current.getDetails(
-        {
-          placeId: prediction.place_id,
-          fields: ['geometry'],
-        },
-        (place, status) => {
-          if (status === placesLibrary.PlacesServiceStatus.OK && place?.geometry?.location) {
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
-            onLocationSelect({ lat, lng }, prediction.description);
-          }
-        }
-      );
+    try {
+      const { Place } = await google.maps.importLibrary('places') as google.maps.PlacesLibrary;
+      const place = new Place({ id: prediction.placeId });
+      
+      await place.fetchFields({ fields: ['location'] });
+      
+      if (place.location) {
+        const lat = place.location.lat();
+        const lng = place.location.lng();
+        onLocationSelect({ lat, lng }, prediction.text.toString());
+      }
+    } catch (error) {
+      console.error('Error fetching place details:', error);
     }
   };
 
@@ -159,20 +141,25 @@ export default function LocationSearchBar({
 
       {isDropdownOpen && predictions.length > 0 && (
         <div className="absolute top-full left-0 w-full mt-4 bg-sys-layer-02 border border-white/10 rounded-4 shadow-floating z-50 overflow-hidden">
-          {predictions.map((prediction) => (
-            <button
-              key={prediction.place_id}
-              type="button"
-              onClick={() => handleSelectPrediction(prediction)}
-              className="w-full text-left px-16 py-12 hover:bg-accent-primary/10 hover:text-white transition-colors border-b border-white/5 last:border-none flex items-start gap-12"
-            >
-              <span className="material-symbols-outlined text-[18px] mt-2 text-text-muted">place</span>
-              <div>
-                <p className="text-[14px] text-white font-medium">{prediction.structured_formatting.main_text}</p>
-                <p className="text-[12px] text-text-secondary">{prediction.structured_formatting.secondary_text}</p>
-              </div>
-            </button>
-          ))}
+          {predictions.map((suggestion, index) => {
+            const prediction = suggestion.placePrediction;
+            if (!prediction) return null;
+            
+            return (
+              <button
+                key={prediction.placeId || index}
+                type="button"
+                onClick={() => handleSelectPrediction(suggestion)}
+                className="w-full text-left px-16 py-12 hover:bg-accent-primary/10 hover:text-white transition-colors border-b border-white/5 last:border-none flex items-start gap-12"
+              >
+                <span className="material-symbols-outlined text-[18px] mt-2 text-text-muted">place</span>
+                <div>
+                  <p className="text-[14px] text-white font-medium">{prediction.mainText?.text}</p>
+                  <p className="text-[12px] text-text-secondary">{prediction.secondaryText?.text}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
