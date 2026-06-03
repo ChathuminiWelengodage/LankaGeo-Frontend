@@ -62,6 +62,14 @@ export async function apiFetch(endpoint: string, options: RequestInit & { respon
 }
 
 /**
+ * Fetches a previously stored analysis result by its request ID.
+ * @param requestId The ID of the analysis request to fetch.
+ */
+export async function fetchAnalysisResult(requestId: string): Promise<any> {
+  return apiFetch(`/analyze/result/${requestId}`);
+}
+
+/**
  * Fetches live hydrological gauge telemetry data.
  * Currently uses mock data with a simulated delay for development.
  */

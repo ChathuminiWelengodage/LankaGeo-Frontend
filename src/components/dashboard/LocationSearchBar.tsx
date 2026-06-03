@@ -93,24 +93,30 @@ export default function LocationSearchBar({
   /**
    * Handles selection of a place from the dropdown
    */
-  const handleSelectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
+  const handleSelectPrediction = async (prediction: google.maps.places.AutocompletePrediction) => {
     setInputValue(prediction.description);
     setIsDropdownOpen(false);
 
-    if (placesService.current && placesLibrary) {
-      placesService.current.getDetails(
-        {
-          placeId: prediction.place_id,
-          fields: ['geometry'],
-        },
-        (place, status) => {
-          if (status === placesLibrary.PlacesServiceStatus.OK && place?.geometry?.location) {
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
-            onLocationSelect({ lat, lng }, prediction.description);
-          }
-        }
-      );
+    try {
+      if (!placesLibrary) return;
+
+      // Use the modern Place class (Places API New)
+      const place = new google.maps.places.Place({
+        id: prediction.place_id
+      });
+
+      // Fetch required fields using the modern fetchFields method
+      await place.fetchFields({
+        fields: ['location', 'displayName']
+      });
+
+      if (place.location) {
+        const lat = place.location.lat();
+        const lng = place.location.lng();
+        onLocationSelect({ lat, lng }, place.displayName || prediction.description);
+      }
+    } catch (err) {
+      console.error('Failed to fetch place details:', err);
     }
   };
 
@@ -141,6 +147,11 @@ export default function LocationSearchBar({
           }}
           onFocus={() => {
             if (predictions.length > 0) setIsDropdownOpen(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && predictions.length > 0) {
+              handleSelectPrediction(predictions[0]);
+            }
           }}
         />
         {isLoading && (
