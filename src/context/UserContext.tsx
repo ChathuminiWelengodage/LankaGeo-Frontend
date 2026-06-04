@@ -10,8 +10,8 @@ interface UserContextType {
   signOut: () => Promise<void>;
   authModal: {
     isOpen: boolean;
-    mode: 'login' | 'signup';
-    open: (mode?: 'login' | 'signup') => void;
+    mode: 'login' | 'signup' | 'forgot-password';
+    open: (mode?: 'login' | 'signup' | 'forgot-password') => void;
     close: () => void;
   };
 }
@@ -22,7 +22,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | 'forgot-password'>('login');
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -71,7 +71,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const authModal = {
     isOpen: isAuthModalOpen,
     mode: authModalMode,
-    open: (mode: 'login' | 'signup' = 'login') => {
+    open: (mode: 'login' | 'signup' | 'forgot-password' = 'login') => {
       setAuthModalMode(mode);
       setIsAuthModalOpen(true);
     },
