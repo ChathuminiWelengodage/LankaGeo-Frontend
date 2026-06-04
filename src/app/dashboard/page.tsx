@@ -43,7 +43,7 @@ function DashboardContent() {
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const { currentData, selectedYear, yearsData, viewMode, setViewMode, selectYear } = useHistorical();
+  const { currentData, selectedYear, yearsData, viewMode, fetchTrendData, setViewMode, selectYear } = useHistorical();
   
   // Handle parameters on load
   useEffect(() => {
@@ -253,6 +253,7 @@ function DashboardContent() {
     // Using a microtask or next tick to ensure state updates are processed
     setTimeout(() => {
       startAnalysis();
+      fetchTrendData(coords.lat, coords.lng);
     }, 0);
   };
 
