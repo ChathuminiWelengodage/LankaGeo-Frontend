@@ -19,5 +19,7 @@ export const supabase: SupabaseClient = (supabaseUrl && supabaseAnonKey)
         signInWithPassword: async () => ({ data: { user: null, session: null }, error: new Error('Supabase credentials missing') }),
         signUp: async () => ({ data: { user: null, session: null }, error: new Error('Supabase credentials missing') }),
         signOut: async () => ({ error: null }),
+        resetPasswordForEmail: async () => ({ data: {}, error: new Error('Supabase credentials missing') }),
+        updateUser: async () => ({ data: { user: null }, error: new Error('Supabase credentials missing') }),
       }
     } as unknown as SupabaseClient;
