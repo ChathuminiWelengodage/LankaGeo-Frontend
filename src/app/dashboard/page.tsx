@@ -72,7 +72,7 @@ function DashboardContent() {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     
-    if (isLoading && !error && !resultId) {
+    if (isLoading && !error && !requestId) {
       let index = 0;
       
       interval = setInterval(() => {
@@ -84,7 +84,7 @@ function DashboardContent() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isLoading, error, resultId]);
+  }, }, [isLoading, error, requestId]);
 
   const startAnalysis = async () => {
     if (!navigator.onLine) {
