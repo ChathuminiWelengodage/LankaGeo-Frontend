@@ -1,6 +1,6 @@
 'use client';
 
-import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
+
 import React, { useState, useEffect, Suspense } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
@@ -29,6 +29,7 @@ const PROGRESS_MESSAGES = [
 
 function DashboardContent() {
   const { profile } = useUser();
+  const searchParams = useSearchParams();
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
