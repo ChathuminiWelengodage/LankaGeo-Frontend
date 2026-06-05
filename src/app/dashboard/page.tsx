@@ -12,6 +12,7 @@ import SidebarTabs from '@/components/dashboard/SidebarTabs';
 import LiveFloodView from '@/components/dashboard/LiveFloodView';
 import HistoricalRiskView from '@/components/dashboard/HistoricalRiskView';
 import { apiFetch, ApiError, fetchAnalysisResult } from '@/lib/api';
+import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 import { useUser } from '@/context/UserContext';
 
@@ -39,15 +40,33 @@ function DashboardContent() {
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const { currentData, selectedYear, yearsData } = useHistorical();
+  const { currentData, selectedYear, yearsData, viewMode, fetchTrendData } = useHistorical();
+  const searchParams = useSearchParams();
   
-  // Set initial location from profile if available
+  // Handle Search Parameters from Home Page
   useEffect(() => {
-    if (profile && !coordinates) {
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    const name = searchParams.get('name');
+
+    if (lat && lng && name) {
+      const coords = { lat: parseFloat(lat), lng: parseFloat(lng) };
+      if (!isNaN(coords.lat) && !isNaN(coords.lng)) {
+        // We use a small delay or check to avoid conflict with profile loading
+        // and ensure the component is fully ready
+        handleLocationSelect(coords, name);
+      }
+    }
+  }, [searchParams]);
+
+  // Set initial location from profile if available (only if no search params)
+  useEffect(() => {
+    const hasSearchParams = searchParams.get('lat') && searchParams.get('lng');
+    if (profile && !coordinates && !hasSearchParams) {
       setCoordinates({ lat: profile.latitude, lng: profile.longitude });
       setLocationName(profile.location_name);
     }
-  }, [profile, coordinates]);
+  }, [profile, coordinates, searchParams]);
 
   // Handle Offline/Online Status
   useEffect(() => {
@@ -72,7 +91,7 @@ function DashboardContent() {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     
-    if (isLoading && !error && !resultId) {
+    if (isLoading && !error && !requestId) {
       let index = 0;
       
       interval = setInterval(() => {
@@ -84,7 +103,7 @@ function DashboardContent() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isLoading, error, resultId]);
+  }, [isLoading, error, requestId]);
 
   const startAnalysis = async () => {
     if (!navigator.onLine) {
@@ -229,7 +248,6 @@ function DashboardContent() {
                 <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40">
                   {coordinates ? (
                     <div className="text-center">
-                      <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
                       <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
                       <p className="text-accent-primary font-mono mt-4">
                         {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}

@@ -147,7 +147,7 @@ export default function LocationSearchBar({
       )}
 
       {isDropdownOpen && predictions.length > 0 && (
-        <div className="absolute top-full left-0 w-full mt-4 bg-sys-layer-02 border border-white/10 rounded-4 shadow-floating z-50 overflow-hidden">
+        <div className="absolute top-full left-0 w-full mt-4 bg-sys-layer-02 border border-white/10 rounded-4 shadow-floating z-50 overflow-y-auto max-h-[320px] custom-scrollbar">
           {predictions.map((suggestion, index) => {
             const prediction = suggestion.placePrediction;
             if (!prediction) return null;
@@ -157,12 +157,12 @@ export default function LocationSearchBar({
                 key={prediction.placeId || index}
                 type="button"
                 onClick={() => handleSelectPrediction(suggestion)}
-                className="w-full text-left px-16 py-12 hover:bg-accent-primary/10 hover:text-white transition-colors border-b border-white/5 last:border-none flex items-start gap-12"
+                className="w-full text-left px-12 py-8 hover:bg-accent-primary/10 hover:text-white transition-colors border-b border-white/5 last:border-none flex items-start gap-10"
               >
-                <span className="material-symbols-outlined text-[18px] mt-2 text-text-muted">place</span>
-                <div>
-                  <p className="text-[14px] text-white font-medium">{prediction.mainText?.text}</p>
-                  <p className="text-[12px] text-text-secondary">{prediction.secondaryText?.text}</p>
+                <span className="material-symbols-outlined text-[16px] mt-2 text-text-muted">place</span>
+                <div className="min-w-0">
+                  <p className="text-[13px] text-white font-medium truncate">{prediction.mainText?.text}</p>
+                  <p className="text-[11px] text-text-secondary truncate">{prediction.secondaryText?.text}</p>
                 </div>
               </button>
             );
