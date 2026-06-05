@@ -13,9 +13,9 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:800
  */
 export class ApiError extends Error {
   status: number;
-  data: Record<string, unknown>;
+  data: any;
 
-  constructor(message: string, status: number, data: Record<string, unknown> = {}) {
+  constructor(message: string, status: number, data: any = {}) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
@@ -65,7 +65,7 @@ export async function apiFetch(endpoint: string, options: RequestInit & { respon
  * Fetches a previously stored analysis result by its request ID.
  * @param requestId The ID of the analysis request to fetch.
  */
-export async function fetchAnalysisResult(requestId: string): Promise<Record<string, unknown>> {
+export async function fetchAnalysisResult(requestId: string): Promise<any> {
   return apiFetch(`/analyze/result/${requestId}`);
 }
 

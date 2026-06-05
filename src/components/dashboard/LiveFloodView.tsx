@@ -2,7 +2,6 @@
 
 import React from 'react';
 import FFITrendChart from './FFITrendChart';
-import { HistoricalData } from '@/lib/mock-flood-data';
 
 interface LiveFloodViewProps {
   isLoading: boolean;
@@ -10,7 +9,7 @@ interface LiveFloodViewProps {
   coordinates: { lat: number; lng: number } | null;
   error: string | null;
   selectedYear: number | null;
-  currentData: HistoricalData;
+  currentData: any;
 }
 
 export default function LiveFloodView({ 
@@ -19,7 +18,7 @@ export default function LiveFloodView({
   coordinates, 
   error,
   selectedYear,
-  currentData: data
+  currentData
 }: LiveFloodViewProps) {
   return (
     <div className="flex flex-col space-y-24 p-24">
@@ -33,22 +32,22 @@ export default function LiveFloodView({
             <div className="space-y-16 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="flex justify-between items-center py-8 border-b border-white/5">
                 <span className="text-text-secondary text-[13px]">Monitored Areas</span>
-                <span className="text-white font-mono text-[13px]">{data.total_zones} Zone Nodes</span>
+                <span className="text-white font-mono text-[13px]">{currentData.total_zones} Zone Nodes</span>
               </div>
               <div className="flex justify-between items-center py-8 border-b border-white/5">
                 <span className="text-text-secondary text-[13px]">Flood Frequency Index</span>
                 <span className={`font-mono text-[13px] px-8 py-2 rounded-4 ${
-                  data.flood_frequency_index > 0.7 ? 'bg-ruby-alert/20 text-ruby-alert' : 'bg-[#14B8A6]/20 text-[#14B8A6]'
+                  currentData.flood_frequency_index > 0.7 ? 'bg-ruby-alert/20 text-ruby-alert' : 'bg-[#14B8A6]/20 text-[#14B8A6]'
                 }`}>
-                  {data.flood_frequency_index.toFixed(2)} / 1.00
+                  {currentData.flood_frequency_index.toFixed(2)} / 1.00
                 </span>
               </div>
               <div className="flex justify-between items-center py-8 border-b border-white/5">
                 <span className="text-text-secondary text-[13px]">Est. Max Area</span>
-                <span className="text-white font-mono text-[13px]">{data.max_area_km2} km²</span>
+                <span className="text-white font-mono text-[13px]">{currentData.max_area_km2} km²</span>
               </div>
               <p className="text-text-muted text-[12px] leading-relaxed mt-16 italic">
-                &quot;{data.impact_summary}&quot;
+                &quot;{currentData.impact_summary}&quot;
               </p>
             </div>
           ) : (

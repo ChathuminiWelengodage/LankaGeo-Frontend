@@ -1,5 +1,6 @@
 'use client';
 
+
 import React, { useState, useEffect, Suspense } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
@@ -12,7 +13,9 @@ import SidebarTabs from '@/components/dashboard/SidebarTabs';
 import LiveFloodView from '@/components/dashboard/LiveFloodView';
 import HistoricalRiskView from '@/components/dashboard/HistoricalRiskView';
 import { apiFetch, ApiError, fetchAnalysisResult } from '@/lib/api';
+import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
+import { useUser } from '@/context/UserContext';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -43,11 +46,8 @@ interface AnalysisResult {
 }
 
 function DashboardContent() {
+  const { profile } = useUser();
   const searchParams = useSearchParams();
-  const resultId = searchParams.get('result');
-  const locationQuery = searchParams.get('location');
-  const placesLibrary = useMapsLibrary('places');
-  
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,101 +60,17 @@ function DashboardContent() {
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const { currentData, selectedYear, yearsData, viewMode, setViewMode, selectYear, fetchTrendData } = useHistorical();
+  const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
+  const { currentData, selectedYear, yearsData } = useHistorical();
   
-  // Handle parameters on load
+  // Set initial location from profile if available
   useEffect(() => {
-    if (resultId) {
-      loadStoredResult(resultId);
-    } else if (locationQuery && placesLibrary) {
-      searchAndAnalyze(locationQuery);
+    const hasSearchParams = searchParams.get('lat') && searchParams.get('lng');
+    if (profile && !coordinates && !hasSearchParams) {
+      setCoordinates({ lat: profile.latitude, lng: profile.longitude });
+      setLocationName(profile.location_name);
     }
-  }, [resultId, locationQuery, placesLibrary]);
-
-  const searchAndAnalyze = async (query: string) => {
-    setIsLoading(true);
-    setLoadingMessage(`Locating "${query}"...`);
-    
-    try {
-      if (!placesLibrary) {
-        throw new Error('Places library not loaded');
-      }
-
-      // Use the modern Place.searchByText API (Places API New)
-      const { places } = await placesLibrary.Place.searchByText({
-        textQuery: query,
-        fields: ['location', 'displayName'],
-        locationRestriction: {
-          north: 9.85,
-          south: 5.91,
-          east: 81.89,
-          west: 79.52
-        }, // Roughly Sri Lanka
-        maxResultCount: 1,
-      });
-
-      if (places && places.length > 0) {
-        const place = places[0];
-        
-        // Fetch required fields using the modern fetchFields method
-        await place.fetchFields({
-          fields: ['location', 'displayName']
-        });
-
-        if (place.location) {
-          const coords = {
-            lat: place.location.lat(),
-            lng: place.location.lng()
-          };
-          setCoordinates(coords);
-          setLocationName(place.displayName || query);
-          
-          // Trigger analysis
-          setTimeout(() => {
-            startAnalysis(coords, place.displayName || query);
-            fetchTrendData(coords.lat, coords.lng);
-          }, 0);
-        } else {
-          throw new Error('Location not found for place');
-        }
-      } else {
-        throw new Error('No places found');
-      }
-    } catch (err) {
-      console.error('Search and analyze failed:', err);
-      setIsLoading(false);
-      setError('timeout');
-    }
-  };
-
-  const loadStoredResult = async (id: string) => {
-    setIsLoading(true);
-    setLoadingMessage('Fetching stored analysis...');
-    setError(null);
-    setGeoJsonData(null);
-    setRequestId(id);
-    
-    // Ensure we are in live view mode when loading a result
-    setViewMode('live');
-    selectYear(null);
-
-    try {
-      const data = await fetchAnalysisResult(id) as AnalysisResult;
-      setGeoJsonData((data.result as Record<string, unknown>) || (data as Record<string, unknown>));
-      
-      if (data.metadata?.coordinates) {
-        setCoordinates(data.metadata.coordinates);
-      }
-      if (data.metadata?.location_name) {
-        setLocationName(data.metadata.location_name);
-      }
-    } catch (err) {
-      console.error('Failed to load stored result:', err);
-      setError('timeout'); 
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [profile, coordinates, searchParams]);
 
   // Handle Offline/Online Status
   useEffect(() => {
@@ -179,7 +95,7 @@ function DashboardContent() {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     
-    if (isLoading && !error && !resultId) {
+    if (isLoading && !error && !requestId) {
       let index = 0;
       
       interval = setInterval(() => {
@@ -191,15 +107,15 @@ function DashboardContent() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isLoading, error, resultId]);
+  }, [isLoading, error, requestId]);
 
-  const startAnalysis = async (coords = coordinates, name = locationName) => {
+  const startAnalysis = async () => {
     if (!navigator.onLine) {
       setError('offline');
       return;
     }
 
-    if (!coords) return;
+    if (!coordinates) return;
 
     setIsLoading(true);
     setLoadingMessage(PROGRESS_MESSAGES[0]);
@@ -212,20 +128,22 @@ function DashboardContent() {
       const data = await apiFetch('/analyze/live', {
         method: 'POST',
         body: JSON.stringify({
-          latitude: coords.lat,
-          longitude: coords.lng,
-          location_name: name
+          latitude: coordinates.lat,
+          longitude: coordinates.lng,
+          location_name: locationName
         })
-      }) as AnalysisResult;
+      });
 
+      // Capture request_id from various possible fields
       const id = data.request_id || data.id || data.requestId;
       if (id) {
-        setRequestId(id as string);
-        setGeoJsonData((data.result as Record<string, unknown>) || (data as Record<string, unknown>));
+        setRequestId(id);
+        setGeoJsonData(data.result || data);
       } else {
+        // If API succeeded but no ID, generate a local one for sharing capability
         const fallbackId = 'LOC-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         setRequestId(fallbackId);
-        setGeoJsonData(data as Record<string, unknown>);
+        setGeoJsonData(data);
       }
     } catch (err) {
       console.error('Analysis failed:', err);
@@ -236,11 +154,14 @@ function DashboardContent() {
         } else if (err.status === 504) {
           setError('timeout');
         } else {
-          setError('timeout');
+          // Generic API error
+          setError('timeout'); // Defaulting to timeout/retry UI for server errors
         }
       } else if (err instanceof TypeError) {
+        // Network errors (e.g., fetch failed)
         setError('offline');
       } else {
+        // Fallback to mock data for unknown errors (Demo Mode)
         setGeoJsonData(MOCK_GEOJSON);
         setRequestId('DEMO-' + Math.random().toString(36).substring(2, 9).toUpperCase());
         setTileUrl('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&opacity=0.4');
@@ -253,14 +174,15 @@ function DashboardContent() {
   const handleLocationSelect = (coords: { lat: number; lng: number }, name: string) => {
     setCoordinates(coords);
     setLocationName(name);
-    setGeoJsonData(null);
+    setGeoJsonData(null); // Clear previous analysis
     setRequestId(null);
     setError(null);
     setValidationError('');
-    
+    console.log('Selected coordinates:', coords, 'Name:', name);
+    // Automatically trigger analysis on location select as per SCRUM-99 requirement "Trigger: On search bar submission"
+    // Using a microtask or next tick to ensure state updates are processed
     setTimeout(() => {
-      startAnalysis(coords, name);
-      fetchTrendData(coords.lat, coords.lng);
+      startAnalysis();
     }, 0);
   };
 
@@ -302,6 +224,7 @@ function DashboardContent() {
       </header>
 
       <main className="max-w-screen-2xl mx-auto px-24 md:px-48 py-32 space-y-32">
+        {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
           <div className="lg:col-span-8 space-y-32">
             <div className="h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
@@ -325,7 +248,6 @@ function DashboardContent() {
                 <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40">
                   {coordinates ? (
                     <div className="text-center">
-                      <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
                       <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
                       <p className="text-accent-primary font-mono mt-4">
                         {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
@@ -357,6 +279,7 @@ function DashboardContent() {
             />
           </div>
 
+          {/* Side Panel */}
           <div className="lg:col-span-4 flex flex-col bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual">
             <SidebarTabs />
             
@@ -364,7 +287,7 @@ function DashboardContent() {
               {viewMode === 'live' ? (
                 <LiveFloodView 
                   isLoading={isLoading}
-                  startAnalysis={() => startAnalysis()}
+                  startAnalysis={startAnalysis}
                   coordinates={coordinates}
                   error={error}
                   selectedYear={selectedYear}

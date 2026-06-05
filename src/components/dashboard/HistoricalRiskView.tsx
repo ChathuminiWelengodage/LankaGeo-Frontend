@@ -8,6 +8,7 @@ import HistoricalStatsCard from './HistoricalStatsCard';
 export default function HistoricalRiskView() {
   const { 
     currentData, 
+    selectedYear, 
     isTrendLoading, 
     trendError, 
     fetchTrendData, 

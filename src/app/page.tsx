@@ -1,9 +1,24 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { APIProvider } from '@vis.gl/react-google-maps';
+import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
+
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  const handleLocationSelect = (coords: { lat: number; lng: number }, name: string) => {
+    const params = new URLSearchParams({
+      lat: coords.lat.toString(),
+      lng: coords.lng.toString(),
+      name: name
+    });
+    router.push(`/dashboard?${params.toString()}`);
+  };
+
   return (
     <div className="bg-[#11131c] text-[#e1e1ee] font-sans selection:bg-[#0f62fe] selection:text-white mt-[-64px]">
       {/* Hero Section */}
@@ -27,15 +42,25 @@ export default function LandingPage() {
               Real-time penetration through dense cloud cover for disaster mitigation.
             </p>
             <div className="pt-16">
-              <div className="relative max-w-md group">
-                <span className="absolute inset-y-0 left-16 flex items-center text-[#8c90a2] group-focus-within:text-[#0f62fe] transition-colors">
-                  <span className="material-symbols-outlined">search</span>
-                </span>
-                <input 
-                  className="w-full bg-[#262626] border-none border-b-2 border-[#424656] focus:border-[#0f62fe] focus:ring-0 text-white pl-48 py-16 rounded-none transition-all shadow-lg font-body outline-none" 
-                  placeholder="Search location..." 
-                  type="text"
-                />
+              <div className="relative max-w-md">
+                {GOOGLE_MAPS_API_KEY ? (
+                  <APIProvider apiKey={GOOGLE_MAPS_API_KEY} solutionChannel="GMP_GCC_placeautocomplete_v1">
+                    <LocationSearchBar 
+                      onLocationSelect={handleLocationSelect}
+                    />
+                  </APIProvider>
+                ) : (
+                  <div className="relative group">
+                    <span className="absolute inset-y-0 left-16 flex items-center text-[#8c90a2] group-focus-within:text-[#0f62fe] transition-colors">
+                      <span className="material-symbols-outlined">search</span>
+                    </span>
+                    <input 
+                      className="w-full bg-[#262626] border-none border-b-2 border-[#424656] focus:border-[#0f62fe] focus:ring-0 text-white pl-48 py-16 rounded-none transition-all shadow-lg font-body outline-none" 
+                      placeholder="Search location..." 
+                      type="text"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
