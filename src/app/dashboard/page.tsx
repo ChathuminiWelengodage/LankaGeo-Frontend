@@ -1,5 +1,6 @@
 'use client';
 
+import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import React, { useState, useEffect, Suspense } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
@@ -40,26 +41,10 @@ function DashboardContent() {
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const { currentData, selectedYear, yearsData, viewMode, fetchTrendData } = useHistorical();
-  const searchParams = useSearchParams();
+  const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
+  const { currentData, selectedYear, yearsData } = useHistorical();
   
-  // Handle Search Parameters from Home Page
-  useEffect(() => {
-    const lat = searchParams.get('lat');
-    const lng = searchParams.get('lng');
-    const name = searchParams.get('name');
-
-    if (lat && lng && name) {
-      const coords = { lat: parseFloat(lat), lng: parseFloat(lng) };
-      if (!isNaN(coords.lat) && !isNaN(coords.lng)) {
-        // We use a small delay or check to avoid conflict with profile loading
-        // and ensure the component is fully ready
-        handleLocationSelect(coords, name);
-      }
-    }
-  }, [searchParams]);
-
-  // Set initial location from profile if available (only if no search params)
+  // Set initial location from profile if available
   useEffect(() => {
     const hasSearchParams = searchParams.get('lat') && searchParams.get('lng');
     if (profile && !coordinates && !hasSearchParams) {
@@ -179,7 +164,6 @@ function DashboardContent() {
     // Using a microtask or next tick to ensure state updates are processed
     setTimeout(() => {
       startAnalysis();
-      fetchTrendData(coords.lat, coords.lng);
     }, 0);
   };
 
