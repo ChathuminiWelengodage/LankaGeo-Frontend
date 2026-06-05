@@ -40,6 +40,7 @@ function DashboardContent() {
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
+  const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
   const { currentData, selectedYear, yearsData } = useHistorical();
   
   // Set initial location from profile if available
