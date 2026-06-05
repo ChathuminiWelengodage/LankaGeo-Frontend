@@ -40,11 +40,11 @@ export default function JoinPage() {
             Create a free account to initialize your personal alert dashboard and start receiving real-time surveillance data.
           </p>
           <div className="flex justify-center gap-16">
-            <button 
+            <button
               onClick={() => authModal.open('signup')}
               className="btn-primary"
             >
-              Initialize Account
+              Create Account
             </button>
           </div>
         </div>

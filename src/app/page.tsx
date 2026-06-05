@@ -1,17 +1,20 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 export default function LandingPage() {
   return (
-    <main className="bg-[#11131c] text-[#e1e1ee] font-sans selection:bg-[#0f62fe] selection:text-white mt-[-64px]">
+    <div className="bg-[#11131c] text-[#e1e1ee] font-sans selection:bg-[#0f62fe] selection:text-white mt-[-64px]">
       {/* Hero Section */}
       <section className="relative h-[870px] flex items-center justify-start overflow-hidden w-full">
         <div className="absolute inset-0 z-0">
-          <img 
+          <Image 
             alt="Hero Satellite Imagery" 
             className="w-full h-full object-cover opacity-70 mix-blend-lighten" 
-            src="/images/screen.png"
+            src="/Images/screen.png"
+            fill
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-tr from-[#11131c] via-[#11131c]/80 to-transparent"></div>
         </div>
@@ -30,7 +33,7 @@ export default function LandingPage() {
                 </span>
                 <input 
                   className="w-full bg-[#262626] border-none border-b-2 border-[#424656] focus:border-[#0f62fe] focus:ring-0 text-white pl-48 py-16 rounded-none transition-all shadow-lg font-body outline-none" 
-                  placeholder="Search regions or monitoring coordinates..." 
+                  placeholder="Search location..." 
                   type="text"
                 />
               </div>
@@ -43,9 +46,6 @@ export default function LandingPage() {
       <section className="py-96 px-24 md:px-48 max-w-screen-2xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-64 items-start">
           <div className="lg:col-span-5 space-y-32">
-            <div className="inline-flex items-center px-12 py-4 bg-[#272a33] border border-[#424656] rounded-none">
-              <span className="text-[11px] font-[500] leading-[14px] tracking-[0.5px] text-[#b4c5ff] uppercase">Our Mission</span>
-            </div>
             <h2 className="text-[42px] font-[300] leading-[1.15] tracking-[-1px] text-white">About LankaGeo</h2>
             <div className="space-y-16 text-[#c3c6d8]">
               <p className="text-[16px] leading-[1.6]">
@@ -97,6 +97,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

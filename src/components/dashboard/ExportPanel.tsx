@@ -7,6 +7,7 @@ import { HistoricalData } from '@/lib/mock-flood-data';
 interface ExportPanelProps {
   isLoading: boolean;
   geoJsonData: Record<string, unknown> | null;
+  requestId: string | null;
   selectedYear: number | null;
   currentData: HistoricalData;
   yearsData: HistoricalData[];
@@ -16,12 +17,14 @@ interface ExportPanelProps {
 export default function ExportPanel({
   isLoading,
   geoJsonData,
+  requestId,
   selectedYear,
   currentData,
   yearsData,
   locationName = 'Region'
 }: ExportPanelProps) {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [showShareConfirmation, setShowShareConfirmation] = useState(false);
 
   // Helper to trigger browser download
   const triggerDownload = (blob: Blob, filename: string) => {
@@ -33,6 +36,41 @@ export default function ExportPanel({
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleShare = async () => {
+    if (!requestId) {
+      console.warn('Share failed: No requestId available');
+      return;
+    }
+
+    // Clean up the pathname to avoid double slashes or missing slashes
+    const cleanPath = window.location.pathname.endsWith('/') 
+      ? window.location.pathname.slice(0, -1) 
+      : window.location.pathname;
+    
+    const shareUrl = `${window.location.origin}${cleanPath}?result=${requestId}`;
+    console.log('Generating shareable link:', shareUrl);
+    
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        // Fallback for non-secure contexts or older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      
+      setShowShareConfirmation(true);
+      setTimeout(() => setShowShareConfirmation(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+      alert('Failed to copy link to clipboard. Manually copy this URL: ' + shareUrl);
+    }
   };
 
   const handleLivePdfDownload = async () => {
@@ -109,6 +147,7 @@ export default function ExportPanel({
 
   const isLiveDisabled = isLoading || !geoJsonData;
   const isHistoricalDisabled = isLoading; // Historical data is usually available from mock-flood-data
+  const isShareDisabled = isLoading || !requestId || !!selectedYear;
 
   return (
     <div className="card-standard relative overflow-hidden group/panel">
@@ -123,7 +162,7 @@ export default function ExportPanel({
           <div>
             <h3 className="text-white text-[16px] font-bold tracking-tight">Export Panel</h3>
             <p className="text-[10px] text-text-muted leading-tight mt-2 max-w-[280px]">
-              Export current live analysis results, including flood zone delineations and impact metrics.
+              Export current live analysis results or share a direct link to this session.
             </p>
           </div>
         </div>
@@ -150,7 +189,7 @@ export default function ExportPanel({
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* PDF Export Card - More compact */}
         <button
           onClick={selectedYear ? handleHistoricalPdfDownload : handleLivePdfDownload}
@@ -197,6 +236,35 @@ export default function ExportPanel({
 
           <div className="mt-8 w-full flex items-center justify-between text-[8px] font-mono text-blue-400 opacity-0 group-hover/btn:opacity-100 transition-opacity">
             <span>EXTRACT_VEC</span>
+            <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+          </div>
+        </button>
+
+        {/* Share Link Card - NEW */}
+        <button
+          onClick={handleShare}
+          disabled={isShareDisabled}
+          className="relative group/btn flex flex-col items-start p-10 rounded-6 bg-white/5 border border-white/10 hover:border-[#14B8A6]/40 hover:bg-[#14B8A6]/5 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed text-left overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/btn:opacity-40 transition-opacity">
+            <span className="material-symbols-outlined text-[20px] text-[#14B8A6]">share</span>
+          </div>
+
+          <div className="mb-6 p-4 rounded-4 bg-[#14B8A6]/10 border border-[#14B8A6]/20 group-hover/btn:bg-[#14B8A6] group-hover/btn:text-white transition-colors">
+            {showShareConfirmation ? (
+              <span className="material-symbols-outlined text-[14px] text-[#14B8A6] group-hover/btn:text-white">check</span>
+            ) : (
+              <span className="material-symbols-outlined text-[14px] text-[#14B8A6] group-hover/btn:text-white">link</span>
+            )}
+          </div>
+          
+          <span className="text-white font-bold text-[12px] leading-none">
+            {showShareConfirmation ? 'Link Copied!' : 'Share Analysis'}
+          </span>
+          <span className="text-[9px] text-text-muted mt-1">Direct URL • {requestId ? 'Active' : 'N/A'}</span>
+
+          <div className="mt-8 w-full flex items-center justify-between text-[8px] font-mono text-[#14B8A6] opacity-0 group-hover/btn:opacity-100 transition-opacity">
+            <span>GEN_LINK</span>
             <span className="material-symbols-outlined text-[10px]">chevron_right</span>
           </div>
         </button>

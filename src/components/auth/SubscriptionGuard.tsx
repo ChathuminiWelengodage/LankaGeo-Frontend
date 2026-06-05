@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 
 interface SubscriptionGuardProps {
@@ -11,12 +11,19 @@ interface SubscriptionGuardProps {
 const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({ children }) => {
   const { user, loading } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user) {
+    // Allow public access to the /alerts page as a preview
+    if (!loading && !user && pathname !== '/alerts') {
       router.push('/join');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, pathname]);
+
+  // Special handling for /alerts preview mode
+  if (!user && pathname === '/alerts') {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (

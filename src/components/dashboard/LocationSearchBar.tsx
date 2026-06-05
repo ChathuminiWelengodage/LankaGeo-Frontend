@@ -6,13 +6,20 @@ import { useMapsLibrary } from '@vis.gl/react-google-maps';
 interface LocationSearchBarProps {
   onLocationSelect: (coords: { lat: number; lng: number }, name: string) => void;
   isLoading?: boolean;
+  errorMessage?: string;
+  onInputChange?: () => void;
 }
 
 /**
  * LocationSearchBar component providing Google Places autocomplete functionality.
  * Restricted to Sri Lanka (LK) and debounced at 300ms.
  */
-export default function LocationSearchBar({ onLocationSelect, isLoading = false }: LocationSearchBarProps) {
+export default function LocationSearchBar({ 
+  onLocationSelect, 
+  isLoading = false,
+  errorMessage,
+  onInputChange
+}: LocationSearchBarProps) {
   const placesLibrary = useMapsLibrary('places');
   const [inputValue, setInputValue] = useState('');
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -86,24 +93,41 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
   /**
    * Handles selection of a place from the dropdown
    */
-  const handleSelectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
+  const handleSelectPrediction = async (prediction: google.maps.places.AutocompletePrediction) => {
     setInputValue(prediction.description);
     setIsDropdownOpen(false);
 
-    if (placesService.current && placesLibrary) {
-      placesService.current.getDetails(
-        {
-          placeId: prediction.place_id,
-          fields: ['geometry'],
-        },
-        (place, status) => {
-          if (status === placesLibrary.PlacesServiceStatus.OK && place?.geometry?.location) {
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
-            onLocationSelect({ lat, lng }, prediction.description);
-          }
+    try {
+      if (!placesLibrary || !placesLibrary.Place) {
+        console.error('Places library not fully loaded');
+        return;
+      }
+
+      // Use the modern Place class from the library instance
+      const place = new placesLibrary.Place({
+        id: prediction.place_id
+      });
+
+      // Fetch required fields using the modern fetchFields method
+      await place.fetchFields({
+        fields: ['location', 'displayName']
+      });
+
+      if (place.location) {
+        const lat = place.location.lat();
+        const lng = place.location.lng();
+        // Ensure we extract the text from displayName if it's a LocalizedText object
+        let displayName = prediction.description;
+        if (typeof place.displayName === 'string') {
+          displayName = place.displayName;
+        } else if (place.displayName && typeof place.displayName === 'object' && 'text' in place.displayName) {
+          displayName = (place.displayName as { text: string }).text;
         }
-      );
+          
+        onLocationSelect({ lat, lng }, displayName);
+      }
+    } catch (err) {
+      console.error('Failed to fetch place details:', err);
     }
   };
 
@@ -119,13 +143,14 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
           onChange={(e) => {
             const value = e.target.value;
             setInputValue(value);
+            if (onInputChange) onInputChange();
             if (value.length <= 2) {
               setPredictions([]);
               setIsDropdownOpen(false);
             }
           }}
           placeholder="Search location in Sri Lanka..."
-          className="carbon-input"
+          className={`carbon-input ${errorMessage ? 'border-ruby-alert/50' : ''}`}
           disabled={isLoading}
           onBlur={() => {
             // Delay closing dropdown to allow click events on suggestions
@@ -134,6 +159,11 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
           onFocus={() => {
             if (predictions.length > 0) setIsDropdownOpen(true);
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && predictions.length > 0) {
+              handleSelectPrediction(predictions[0]);
+            }
+          }}
         />
         {isLoading && (
           <div className="mr-16">
@@ -141,6 +171,13 @@ export default function LocationSearchBar({ onLocationSelect, isLoading = false 
           </div>
         )}
       </div>
+
+      {errorMessage && (
+        <div className="mt-4 px-4 flex items-center gap-6 animate-in fade-in slide-in-from-top-1 duration-300">
+          <span className="material-symbols-outlined text-ruby-alert text-[14px]">error</span>
+          <p className="text-ruby-alert text-[12px] font-medium">{errorMessage}</p>
+        </div>
+      )}
 
       {isDropdownOpen && predictions.length > 0 && (
         <div className="absolute top-full left-0 w-full mt-4 bg-sys-layer-02 border border-white/10 rounded-4 shadow-floating z-50 overflow-hidden">
