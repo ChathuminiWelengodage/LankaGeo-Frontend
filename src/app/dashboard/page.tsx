@@ -161,7 +161,6 @@ function DashboardContent() {
     // Using a microtask or next tick to ensure state updates are processed
     setTimeout(() => {
       startAnalysis();
-      fetchTrendData(coords.lat, coords.lng);
     }, 0);
   };
 
