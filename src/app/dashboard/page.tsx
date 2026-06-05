@@ -29,6 +29,7 @@ const PROGRESS_MESSAGES = [
 
 function DashboardContent() {
   const { profile } = useUser();
+  const searchParams = useSearchParams();
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
