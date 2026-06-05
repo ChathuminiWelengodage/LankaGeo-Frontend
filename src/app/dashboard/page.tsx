@@ -1,5 +1,6 @@
 'use client';
 
+import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import React, { useState, useEffect, Suspense } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
@@ -13,7 +14,7 @@ import LiveFloodView from '@/components/dashboard/LiveFloodView';
 import HistoricalRiskView from '@/components/dashboard/HistoricalRiskView';
 import { apiFetch, ApiError, fetchAnalysisResult } from '@/lib/api';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
-import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
+import { useUser } from '@/context/UserContext';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -26,11 +27,7 @@ const PROGRESS_MESSAGES = [
 ];
 
 function DashboardContent() {
-  const searchParams = useSearchParams();
-  const resultId = searchParams.get('result');
-  const locationQuery = searchParams.get('location');
-  const placesLibrary = useMapsLibrary('places');
-  
+  const { profile } = useUser();
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,104 +40,16 @@ function DashboardContent() {
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const { currentData, selectedYear, yearsData, viewMode, fetchTrendData, setViewMode, selectYear } = useHistorical();
+  const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
+  const { currentData, selectedYear, yearsData } = useHistorical();
   
-  // Handle parameters on load
+  // Set initial location from profile if available
   useEffect(() => {
-    if (resultId) {
-      loadStoredResult(resultId);
-    } else if (locationQuery && placesLibrary) {
-      searchAndAnalyze(locationQuery);
+    if (profile && !coordinates) {
+      setCoordinates({ lat: profile.latitude, lng: profile.longitude });
+      setLocationName(profile.location_name);
     }
-  }, [resultId, locationQuery, placesLibrary]);
-
-  const searchAndAnalyze = async (query: string) => {
-    setIsLoading(true);
-    setLoadingMessage(`Locating "${query}"...`);
-    
-    try {
-      if (!placesLibrary) {
-        throw new Error('Places library not loaded');
-      }
-
-      // Use the modern Place.searchByText API (Places API New)
-      const { places } = await placesLibrary.Place.searchByText({
-        textQuery: query,
-        fields: ['location', 'displayName'],
-        locationRestriction: {
-          north: 9.85,
-          south: 5.91,
-          east: 81.89,
-          west: 79.52
-        }, // Roughly Sri Lanka
-        maxResultCount: 1,
-      });
-
-      if (places && places.length > 0) {
-        const place = places[0];
-        
-        // Fetch required fields using the modern fetchFields method
-        await place.fetchFields({
-          fields: ['location', 'displayName']
-        });
-
-        if (place.location) {
-          const coords = {
-            lat: place.location.lat(),
-            lng: place.location.lng()
-          };
-          setCoordinates(coords);
-          setLocationName(place.displayName || query);
-          
-          // Trigger analysis
-          setTimeout(() => {
-            startAnalysis();
-          }, 0);
-        } else {
-          throw new Error('Location not found for place');
-        }
-      } else {
-        throw new Error('No places found');
-      }
-    } catch (err) {
-      console.error('Search and analyze failed:', err);
-      setIsLoading(false);
-      setError('timeout');
-    }
-  };
-
-  const loadStoredResult = async (id: string) => {
-    setIsLoading(true);
-    setLoadingMessage('Fetching stored analysis...');
-    setError(null);
-    setGeoJsonData(null);
-    setRequestId(id);
-    
-    // Ensure we are in live view mode when loading a result
-    setViewMode('live');
-    selectYear(null);
-
-    try {
-      const data = await fetchAnalysisResult(id);
-      // Backend should return the result directly or wrapped in an object
-      // If it's wrapped: setGeoJsonData(data.result);
-      // For now, assuming it returns the GeoJSON directly as per current pattern
-      setGeoJsonData(data);
-      
-      // If coordinates are available in metadata, we could center the map
-      if (data.metadata?.coordinates) {
-        setCoordinates(data.metadata.coordinates);
-      }
-      if (data.metadata?.location_name) {
-        setLocationName(data.metadata.location_name);
-      }
-    } catch (err) {
-      console.error('Failed to load stored result:', err);
-      setError('timeout'); // Using timeout as a generic "failed to fetch" state
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [profile, coordinates]);
 
   // Handle Offline/Online Status
   useEffect(() => {
@@ -165,7 +74,7 @@ function DashboardContent() {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     
-    if (isLoading && !error && !resultId) {
+    if (isLoading && !error && !requestId) {
       let index = 0;
       
       interval = setInterval(() => {
@@ -177,7 +86,7 @@ function DashboardContent() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isLoading, error, resultId]);
+  }, [isLoading, error, requestId]);
 
   const startAnalysis = async () => {
     if (!navigator.onLine) {
@@ -253,7 +162,6 @@ function DashboardContent() {
     // Using a microtask or next tick to ensure state updates are processed
     setTimeout(() => {
       startAnalysis();
-      fetchTrendData(coords.lat, coords.lng);
     }, 0);
   };
 
