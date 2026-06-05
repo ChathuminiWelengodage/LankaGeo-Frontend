@@ -6,7 +6,7 @@ import { useUser } from '@/context/UserContext';
 import { apiFetch } from '@/lib/api';
 
 export default function AlertDashboard() {
-  const { user, authModal, loading } = useUser();
+  const { user, profile, authModal, loading } = useUser();
   const [backendStatus, setBackendStatus] = useState<'loading' | 'connected' | 'error'>('loading');
   
   useEffect(() => {
@@ -34,9 +34,16 @@ export default function AlertDashboard() {
   }, [user]);
 
   const [phone, setPhone] = useState('');
-  const [notifEmail, setNotifEmail] = useState(user?.email || '');
+  const [notifEmail, setNotifEmail] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  useEffect(() => {
+    if (profile) {
+      setPhone(profile.phone_number || '');
+      setNotifEmail(user?.email || '');
+    }
+  }, [profile, user]);
 
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +57,7 @@ export default function AlertDashboard() {
     setSaveStatus('idle');
     
     try {
-      // Simulate API call
+      // Simulate API call or update Supabase profile
       await new Promise(resolve => setTimeout(resolve, 1500));
       console.log('Saving preferences:', { phone, email: notifEmail });
       setSaveStatus('success');
@@ -160,12 +167,23 @@ export default function AlertDashboard() {
             <div className="lg:col-span-7 space-y-24">
               <div className="flex items-center justify-between border-b border-white/5 pb-16">
                 <h3 className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Active Monitors</h3>
-                {/*<span className="text-[10px] font-mono text-text-muted italic">LIVE_FEED_01</span>*/}
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-16">
+                {profile ? (
+                  <MonitorItem zone={profile.location_name} status="Normal" risk="Active" isPrimary />
+                ) : (
+                  <div className="p-24 bg-white/5 rounded-6 border border-dashed border-white/10 text-center">
+                    <p className="text-xs text-text-muted">No primary monitoring zone configured.</p>
+                    <button 
+                      onClick={() => authModal.open('signup')} 
+                      className="text-accent-primary text-[10px] font-bold uppercase mt-8 hover:underline"
+                    >
+                      Configure Now
+                    </button>
+                  </div>
+                )}
                 <MonitorItem zone="Colombo North" status="Normal" risk="2.4%" />
                 <MonitorItem zone="Gampaha Basin" status="Warning" risk="42.8%" />
-                <MonitorItem zone="Ratnapura Area" status="Normal" risk="12.1%" />
               </div>
             </div>
 
@@ -173,7 +191,6 @@ export default function AlertDashboard() {
             <div className="lg:col-span-5 space-y-24">
               <div className="flex items-center justify-between border-b border-white/5 pb-16">
                 <h3 className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Recent SAR Delta Reports</h3>
-                {/*<span className="text-[10px] font-mono text-text-muted italic">ARCHIVE_V2</span>*/}
               </div>
               <div className="card-standard p-16 space-y-4">
                 <ReportItem date="2026-04-28" zone="Gampaha" type="Full Scan" />
@@ -184,11 +201,10 @@ export default function AlertDashboard() {
             </div>
           </div>
 
-          {/* Notification Channels Section - Standardized Title */}
+          {/* Notification Channels Section */}
           <div className="space-y-24">
             <div className="flex items-center justify-between border-b border-white/5 pb-16">
               <h3 className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Notification Channels</h3>
-              {/*<span className="text-[10px] font-mono text-text-muted italic">PREFERENCES_V1</span>*/}
             </div>
             
             <div className="bg-sys-layer-01 border border-white/5 rounded-8 p-24 shadow-floating">
@@ -270,12 +286,17 @@ function BenefitCard({ title, description, icon }: { title: string; description:
   );
 }
 
-function MonitorItem({ zone, status, risk }: { zone: string; status: string; risk: string }) {
+function MonitorItem({ zone, status, risk, isPrimary }: { zone: string; status: string; risk: string; isPrimary?: boolean }) {
   const isWarning = status === 'Warning';
   return (
-    <div className="flex justify-between items-center p-24 bg-white/5 rounded-6 border border-white/5 hover:bg-white/[0.08] transition-all group">
+    <div className={`flex justify-between items-center p-24 rounded-6 border transition-all group ${isPrimary ? 'bg-accent-primary/5 border-accent-primary/30 ring-1 ring-accent-primary/20' : 'bg-white/5 border-white/5 hover:bg-white/[0.08]'}`}>
       <div className="space-y-4">
-        <div className="text-base font-bold text-white group-hover:text-accent-light transition-colors">{zone}</div>
+        <div className="flex items-center gap-8">
+          <div className="text-base font-bold text-white group-hover:text-accent-light transition-colors">{zone}</div>
+          {isPrimary && (
+            <span className="text-[8px] bg-accent-primary text-white px-6 py-1 rounded-2 font-bold tracking-tighter uppercase">Primary</span>
+          )}
+        </div>
         <div className="text-[10px] text-text-muted font-mono uppercase tracking-widest">Vector ID: LG-S1-{zone.substring(0,3).toUpperCase()}</div>
       </div>
       <div className="text-right space-y-4">

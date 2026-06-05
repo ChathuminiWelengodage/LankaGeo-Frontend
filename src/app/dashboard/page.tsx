@@ -11,6 +11,7 @@ import ExportPanel from '@/components/dashboard/ExportPanel';
 import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverlay';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
+import { useUser } from '@/context/UserContext';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -23,6 +24,7 @@ const PROGRESS_MESSAGES = [
 ];
 
 function DashboardContent() {
+  const { profile } = useUser();
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +37,14 @@ function DashboardContent() {
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
   const { currentData, selectedYear, yearsData } = useHistorical();
   
+  // Set initial location from profile if available
+  useEffect(() => {
+    if (profile && !coordinates) {
+      setCoordinates({ lat: profile.latitude, lng: profile.longitude });
+      setLocationName(profile.location_name);
+    }
+  }, [profile, coordinates]);
+
   // Handle Offline/Online Status
   useEffect(() => {
     const handleOffline = () => {
