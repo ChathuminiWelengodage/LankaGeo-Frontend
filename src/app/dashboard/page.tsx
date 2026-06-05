@@ -1,6 +1,6 @@
 'use client';
 
-import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
+
 import React, { useState, useEffect, Suspense } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
