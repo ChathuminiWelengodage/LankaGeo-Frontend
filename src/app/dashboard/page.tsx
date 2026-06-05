@@ -84,7 +84,7 @@ function DashboardContent() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, }, [isLoading, error, requestId]);
+  }, [isLoading, error, requestId]);
 
   const startAnalysis = async () => {
     if (!navigator.onLine) {
