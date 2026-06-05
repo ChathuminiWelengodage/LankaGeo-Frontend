@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Map, useMap, MapControl, ControlPosition } from '@vis.gl/react-google-maps';
+import { Map, useMap, MapControl, ControlPosition, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
 import { useFloodData } from '@/hooks/useFloodData';
 import MapToggleControls from './controls/MapToggleControls';
 import { useHistorical } from '@/context/HistoricalContext';
@@ -16,6 +16,7 @@ interface FloodZoneMapProps {
 
 const DEFAULT_CENTER = { lat: 7.8731, lng: 80.7718 }; // Center of Sri Lanka
 const DEFAULT_ZOOM = 8;
+const SEARCH_ZOOM = 13;
 const TRANSITION_DURATION = 300;
 
 /**
@@ -34,6 +35,13 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
 
   const activeLayersRef = useRef<google.maps.ImageMapType[]>([]);
   const currentTileUrlRef = useRef<string | null>(null);
+
+  // Handle zooming to search location
+  useEffect(() => {
+    if (map && center && (center.lat !== DEFAULT_CENTER.lat || center.lng !== DEFAULT_CENTER.lng)) {
+      map.setZoom(SEARCH_ZOOM);
+    }
+  }, [map, center]);
 
   // Handle Raster Tile Overlay with Smooth Cross-Fade
   useEffect(() => {
@@ -141,6 +149,17 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
         className="w-full h-full"
       >
         <HydrologicalStations />
+        
+        {center && (center.lat !== DEFAULT_CENTER.lat || center.lng !== DEFAULT_CENTER.lng) && (
+          <AdvancedMarker position={center}>
+            <Pin 
+              background={'#0f62fe'} 
+              borderColor={'#0043ce'} 
+              glyphColor={'#ffffff'} 
+            />
+          </AdvancedMarker>
+        )}
+
         <MapControl position={ControlPosition.LEFT_BOTTOM}>
           <MapLegend />
         </MapControl>

@@ -1,6 +1,6 @@
 'use client';
 
-import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
+
 import React, { useState, useEffect, Suspense } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
@@ -13,6 +13,7 @@ import SidebarTabs from '@/components/dashboard/SidebarTabs';
 import LiveFloodView from '@/components/dashboard/LiveFloodView';
 import HistoricalRiskView from '@/components/dashboard/HistoricalRiskView';
 import { apiFetch, ApiError, fetchAnalysisResult } from '@/lib/api';
+import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 import { useUser } from '@/context/UserContext';
 
@@ -28,6 +29,7 @@ const PROGRESS_MESSAGES = [
 
 function DashboardContent() {
   const { profile } = useUser();
+  const searchParams = useSearchParams();
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -45,11 +47,12 @@ function DashboardContent() {
   
   // Set initial location from profile if available
   useEffect(() => {
-    if (profile && !coordinates) {
+    const hasSearchParams = searchParams.get('lat') && searchParams.get('lng');
+    if (profile && !coordinates && !hasSearchParams) {
       setCoordinates({ lat: profile.latitude, lng: profile.longitude });
       setLocationName(profile.location_name);
     }
-  }, [profile, coordinates]);
+  }, [profile, coordinates, searchParams]);
 
   // Handle Offline/Online Status
   useEffect(() => {
@@ -230,7 +233,6 @@ function DashboardContent() {
                 <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40">
                   {coordinates ? (
                     <div className="text-center">
-                      <span className="material-symbols-outlined text-[48px] text-accent-primary mb-16">satellite_alt</span>
                       <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
                       <p className="text-accent-primary font-mono mt-4">
                         {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
