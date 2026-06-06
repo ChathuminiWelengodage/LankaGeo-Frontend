@@ -40,6 +40,12 @@ function DashboardContent() {
     return null;
   });
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
+  const [impactData, setImpactData] = useState<{
+    estimated_population: number;
+    buildings_exposed: number;
+    road_length_km: number;
+    cropland_area_km2: number;
+  } | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
   const { viewMode, currentData, selectedYear, yearsData, fetchTrendData } = useHistorical();
@@ -127,11 +133,17 @@ function DashboardContent() {
       if (id) {
         setRequestId(id);
         setGeoJsonData(data.result || data);
+        if (data.impact) {
+          setImpactData(data.impact);
+        }
       } else {
         // If API succeeded but no ID, generate a local one for sharing capability
         const fallbackId = 'LOC-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         setRequestId(fallbackId);
-        setGeoJsonData(data);
+        setGeoJsonData(data.result || data);
+        if (data.impact) {
+          setImpactData(data.impact);
+        }
       }
     } catch (err) {
       console.error('Analysis failed:', err);
@@ -149,10 +161,8 @@ function DashboardContent() {
         // Network errors (e.g., fetch failed)
         setError('offline');
       } else {
-        // Fallback to mock data for unknown errors (Demo Mode)
-        setGeoJsonData(MOCK_GEOJSON);
-        setRequestId('DEMO-' + Math.random().toString(36).substring(2, 9).toUpperCase());
-        setTileUrl('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&opacity=0.4');
+        // Unexpected errors
+        setError('timeout');
       }
     } finally {
       setIsLoading(false);
@@ -298,10 +308,10 @@ function DashboardContent() {
         {geoJsonData && (
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
             <ImpactAssessment 
-              estimated_population={12450}
-              buildings_exposed={842}
-              road_length_km={15.4}
-              cropland_area_km2={4.2}
+              estimated_population={impactData?.estimated_population || 0}
+              buildings_exposed={impactData?.buildings_exposed || 0}
+              road_length_km={impactData?.road_length_km || 0}
+              cropland_area_km2={impactData?.cropland_area_km2 || 0}
             />
           </div>
         )}
