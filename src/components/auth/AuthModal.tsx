@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import LocationSearchBar from '../dashboard/LocationSearchBar';
 
 interface AuthModalProps {
@@ -265,9 +266,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             {error && <p className="text-ruby-alert text-xs">{error}</p>}
 
             {mode === 'login' && (
-              <button type="button" className="text-accent-light text-xs hover:underline">
+              <Link 
+                href="/forgot-password" 
+                onClick={onClose}
+                className="text-accent-light text-xs hover:underline inline-block"
+              >
                 Forgot Password?
-              </button>
+              </Link>
             )}
 
             <div className="flex flex-col gap-12">
