@@ -2,7 +2,7 @@
 
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
 import FloodZoneMap from '@/components/dashboard/FloodZoneMap';
@@ -12,7 +12,7 @@ import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverla
 import SidebarTabs from '@/components/dashboard/SidebarTabs';
 import LiveFloodView from '@/components/dashboard/LiveFloodView';
 import HistoricalRiskView from '@/components/dashboard/HistoricalRiskView';
-import { apiFetch, ApiError, fetchAnalysisResult } from '@/lib/api';
+import { apiFetch, ApiError } from '@/lib/api';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 import { useUser } from '@/context/UserContext';
@@ -42,8 +42,7 @@ function DashboardContent() {
   const [geoJsonData, setGeoJsonData] = useState<Record<string, unknown> | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
-  const { currentData, selectedYear, yearsData } = useHistorical();
+  const { viewMode, currentData, selectedYear, yearsData, fetchTrendData } = useHistorical();
   
   // Set initial location from profile if available
   useEffect(() => {
@@ -53,6 +52,13 @@ function DashboardContent() {
       setLocationName(profile.location_name);
     }
   }, [profile, coordinates, searchParams]);
+
+  // Fetch historical trend data when switching to historical view if coordinates exist
+  useEffect(() => {
+    if (viewMode === 'historical' && coordinates && !isLoading) {
+      fetchTrendData(coordinates.lat, coordinates.lng);
+    }
+  }, [viewMode, coordinates, fetchTrendData, isLoading]);
 
   // Handle Offline/Online Status
   useEffect(() => {
@@ -161,10 +167,13 @@ function DashboardContent() {
     setError(null);
     setValidationError('');
     console.log('Selected coordinates:', coords, 'Name:', name);
-    // Automatically trigger analysis on location select as per SCRUM-99 requirement "Trigger: On search bar submission"
-    // Using a microtask or next tick to ensure state updates are processed
+    // Automatically trigger analysis on location select
     setTimeout(() => {
-      startAnalysis();
+      if (viewMode === 'live') {
+        startAnalysis();
+      } else {
+        fetchTrendData(coords.lat, coords.lng);
+      }
     }, 0);
   };
 

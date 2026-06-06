@@ -4,11 +4,11 @@ import React from 'react';
 import { useHistorical } from '@/context/HistoricalContext';
 import HistoricalYearStepper from './HistoricalYearStepper';
 import HistoricalStatsCard from './HistoricalStatsCard';
+import FFITrendChart from './FFITrendChart';
 
 export default function HistoricalRiskView() {
   const { 
     currentData, 
-    selectedYear, 
     isTrendLoading, 
     trendError, 
     fetchTrendData, 
@@ -92,6 +92,9 @@ export default function HistoricalRiskView() {
 
       {/* Stats Card */}
       <HistoricalStatsCard />
+
+      {/* FFI Trend Chart */}
+      <FFITrendChart />
 
       {/* Flood Zones Breakdown */}
       <div className="space-y-16">
