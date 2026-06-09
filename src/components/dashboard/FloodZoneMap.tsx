@@ -38,7 +38,7 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
 
   // Handle zooming to search location
   useEffect(() => {
-    if (map && center && (center.lat !== DEFAULT_CENTER.lat || center.lng !== DEFAULT_CENTER.lng)) {
+    if (map && center) {
       map.setZoom(SEARCH_ZOOM);
     }
   }, [map, center]);
@@ -150,7 +150,7 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
       >
         <HydrologicalStations />
         
-        {center && (center.lat !== DEFAULT_CENTER.lat || center.lng !== DEFAULT_CENTER.lng) && (
+        {center && (
           <AdvancedMarker position={center}>
             <Pin 
               background={'#0f62fe'} 

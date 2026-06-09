@@ -1,7 +1,7 @@
 'use client';
 
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
@@ -50,14 +50,114 @@ function DashboardContent() {
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
   const { viewMode, currentData, selectedYear, yearsData, fetchTrendData } = useHistorical();
   
+  const startAnalysis = useCallback(async (coords?: { lat: number; lng: number }, name?: string) => {
+    if (!navigator.onLine) {
+      setError('offline');
+      return;
+    }
+
+    const targetCoords = coords || coordinates;
+    const targetName = name || locationName;
+
+    if (!targetCoords) return;
+
+    setIsLoading(true);
+    setLoadingMessage(PROGRESS_MESSAGES[0]);
+    setError(null);
+    setValidationError('');
+    setGeoJsonData(null);
+    setRequestId(null);
+
+    try {
+      const data = await apiFetch('/analyze/live', {
+        method: 'POST',
+        body: JSON.stringify({
+          latitude: targetCoords.lat,
+          longitude: targetCoords.lng,
+          location_name: targetName
+        })
+      });
+
+      // Capture request_id from various possible fields
+      const id = data.request_id || data.id || data.requestId;
+      if (id) {
+        setRequestId(id);
+        setGeoJsonData(data.result || data);
+      } else {
+        // If API succeeded but no ID, generate a local one for sharing capability
+        const fallbackId = 'LOC-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+        setRequestId(fallbackId);
+        setGeoJsonData(data);
+      }
+    } catch (err) {
+      console.error('Analysis failed:', err);
+      
+      if (err instanceof ApiError) {
+        if (err.status === 422) {
+          setValidationError(err.message);
+        } else if (err.status === 504) {
+          // If in development or if we want to allow demo fallback for timeouts
+          console.warn('Analysis timed out. Falling back to Demo Mode.');
+          setGeoJsonData(MOCK_GEOJSON);
+          setRequestId('DEMO-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+          setTileUrl('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&opacity=0.4');
+        } else {
+          // Generic API error
+          setError('timeout'); // Defaulting to timeout/retry UI for other server errors
+        }
+      } else if (err instanceof TypeError && !navigator.onLine) {
+        // Actual offline state
+        setError('offline');
+      } else {
+        // Server unreachable or other error - Fallback to mock data (Demo Mode)
+        console.warn('Backend unreachable or error occurred. Falling back to Demo Mode.');
+        setGeoJsonData(MOCK_GEOJSON);
+        setRequestId('DEMO-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+        setTileUrl('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&opacity=0.4');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [coordinates, locationName]);
+
+  const handleLocationSelect = useCallback((coords: { lat: number; lng: number }, name: string) => {
+    setCoordinates(coords);
+    setLocationName(name);
+    setGeoJsonData(null); // Clear previous analysis
+    setRequestId(null);
+    setError(null);
+    setValidationError('');
+    console.log('Selected coordinates:', coords, 'Name:', name);
+    // Automatically trigger analysis on location select
+    setTimeout(() => {
+      if (viewMode === 'live') {
+        startAnalysis(coords, name);
+      } else {
+        fetchTrendData(coords.lat, coords.lng);
+      }
+    }, 0);
+  }, [viewMode, startAnalysis, fetchTrendData]);
+
+  // Handle search parameters from landing page
+  useEffect(() => {
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    const name = searchParams.get('name');
+
+    if (lat && lng && !coordinates) {
+      const coords = { lat: parseFloat(lat), lng: parseFloat(lng) };
+      handleLocationSelect(coords, name || '');
+    }
+  }, [searchParams, coordinates, handleLocationSelect]);
+
   // Set initial location from profile if available
   useEffect(() => {
     const hasSearchParams = searchParams.get('lat') && searchParams.get('lng');
     if (profile && !coordinates && !hasSearchParams) {
-      setCoordinates({ lat: profile.latitude, lng: profile.longitude });
-      setLocationName(profile.location_name);
+      const coords = { lat: profile.latitude, lng: profile.longitude };
+      handleLocationSelect(coords, profile.location_name);
     }
-  }, [profile, coordinates, searchParams]);
+  }, [profile, coordinates, searchParams, handleLocationSelect]);
 
   // Fetch historical trend data when switching to historical view if coordinates exist
   useEffect(() => {
@@ -65,6 +165,13 @@ function DashboardContent() {
       fetchTrendData(coordinates.lat, coordinates.lng);
     }
   }, [viewMode, coordinates, fetchTrendData, isLoading]);
+
+  // Auto-trigger live analysis when switching to live view if coordinates exist but no data yet
+  useEffect(() => {
+    if (viewMode === 'live' && coordinates && !geoJsonData && !isLoading && !error) {
+      startAnalysis(coordinates, locationName);
+    }
+  }, [viewMode, coordinates, geoJsonData, isLoading, error, startAnalysis, locationName]);
 
   // Handle Offline/Online Status
   useEffect(() => {
@@ -102,90 +209,6 @@ function DashboardContent() {
       if (interval) clearInterval(interval);
     };
   }, [isLoading, error, requestId]);
-
-  const startAnalysis = async () => {
-    if (!navigator.onLine) {
-      setError('offline');
-      return;
-    }
-
-    if (!coordinates) return;
-
-    setIsLoading(true);
-    setLoadingMessage(PROGRESS_MESSAGES[0]);
-    setError(null);
-    setValidationError('');
-    setGeoJsonData(null);
-    setRequestId(null);
-
-    try {
-      const data = await apiFetch('/analyze/live', {
-        method: 'POST',
-        body: JSON.stringify({
-          latitude: coordinates.lat,
-          longitude: coordinates.lng,
-          location_name: locationName
-        })
-      });
-
-      // Capture request_id from various possible fields
-      const id = data.request_id || data.id || data.requestId;
-      if (id) {
-        setRequestId(id);
-        setGeoJsonData(data.result || data);
-        if (data.impact) {
-          setImpactData(data.impact);
-        }
-      } else {
-        // If API succeeded but no ID, generate a local one for sharing capability
-        const fallbackId = 'LOC-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-        setRequestId(fallbackId);
-        setGeoJsonData(data.result || data);
-        if (data.impact) {
-          setImpactData(data.impact);
-        }
-      }
-    } catch (err) {
-      console.error('Analysis failed:', err);
-      
-      if (err instanceof ApiError) {
-        if (err.status === 422) {
-          setValidationError(err.message);
-        } else if (err.status === 504) {
-          setError('timeout');
-        } else {
-          // Generic API error
-          setError('timeout'); // Defaulting to timeout/retry UI for server errors
-        }
-      } else if (err instanceof TypeError) {
-        // Network errors (e.g., fetch failed)
-        setError('offline');
-      } else {
-        // Unexpected errors
-        setError('timeout');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLocationSelect = (coords: { lat: number; lng: number }, name: string) => {
-    setCoordinates(coords);
-    setLocationName(name);
-    setGeoJsonData(null); // Clear previous analysis
-    setRequestId(null);
-    setError(null);
-    setValidationError('');
-    console.log('Selected coordinates:', coords, 'Name:', name);
-    // Automatically trigger analysis on location select
-    setTimeout(() => {
-      if (viewMode === 'live') {
-        startAnalysis();
-      } else {
-        fetchTrendData(coords.lat, coords.lng);
-      }
-    }, 0);
-  };
 
   return (
     <div className="min-h-screen bg-sys-bg-base">
@@ -295,8 +318,6 @@ function DashboardContent() {
                   startAnalysis={startAnalysis}
                   coordinates={coordinates}
                   error={error}
-                  selectedYear={selectedYear}
-                  currentData={currentData}
                 />
               ) : (
                 <HistoricalRiskView />
