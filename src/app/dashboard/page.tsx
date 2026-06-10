@@ -48,6 +48,7 @@ function DashboardContent() {
   } | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
+  const [resultNotFoundError, setResultNotFoundError] = useState(false);
   const { viewMode, currentData, selectedYear, yearsData, fetchTrendData } = useHistorical();
   
   const startAnalysis = useCallback(async (coords?: { lat: number; lng: number }, name?: string) => {
@@ -66,7 +67,9 @@ function DashboardContent() {
     setError(null);
     setValidationError('');
     setGeoJsonData(null);
+    setImpactData(null);
     setRequestId(null);
+    setResultNotFoundError(false);
 
     try {
       const data = await apiFetch('/analyze/live', {
@@ -83,6 +86,13 @@ function DashboardContent() {
       if (id) {
         setRequestId(id);
         setGeoJsonData(data.result || data);
+        
+        // Handle impact metrics if provided by API
+        if (data.impact) {
+          setImpactData(data.impact);
+        } else if (data.impact_metrics) {
+          setImpactData(data.impact_metrics);
+        }
       } else {
         // If API succeeded but no ID, generate a local one for sharing capability
         const fallbackId = 'LOC-' + Math.random().toString(36).substring(2, 9).toUpperCase();
@@ -124,9 +134,11 @@ function DashboardContent() {
     setCoordinates(coords);
     setLocationName(name);
     setGeoJsonData(null); // Clear previous analysis
+    setImpactData(null);
     setRequestId(null);
     setError(null);
     setValidationError('');
+    setResultNotFoundError(false);
     console.log('Selected coordinates:', coords, 'Name:', name);
     // Automatically trigger analysis on location select
     setTimeout(() => {
@@ -138,11 +150,65 @@ function DashboardContent() {
     }, 0);
   }, [viewMode, startAnalysis, fetchTrendData]);
 
+  // Handle shared result loading from ?result= parameter
+  useEffect(() => {
+    const resultId = searchParams.get('result');
+    if (!resultId || requestId === resultId) return;
+
+    const loadStoredResult = async () => {
+      setIsLoading(true);
+      setLoadingMessage('Fetching shared analysis...');
+      setResultNotFoundError(false);
+      setError(null);
+      setGeoJsonData(null);
+      setImpactData(null);
+
+      try {
+        const data = await apiFetch(`/analyze/result/${resultId}`);
+        
+        // Update state with fetched result
+        setRequestId(resultId);
+        setGeoJsonData(data.result || data);
+        
+        if (data.impact) {
+          setImpactData(data.impact);
+        } else if (data.impact_metrics) {
+          setImpactData(data.impact_metrics);
+        }
+
+        if (data.latitude && data.longitude) {
+          setCoordinates({ lat: data.latitude, lng: data.longitude });
+        }
+        if (data.location_name) {
+          setLocationName(data.location_name);
+        }
+        if (data.tile_url) {
+          setTileUrl(data.tile_url);
+        }
+      } catch (err) {
+        console.error('Failed to load shared result:', err);
+        if (err instanceof ApiError && err.status === 404) {
+          setResultNotFoundError(true);
+        } else {
+          setError('timeout');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStoredResult();
+  }, [searchParams, requestId]);
+
   // Handle search parameters from landing page
   useEffect(() => {
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
     const name = searchParams.get('name');
+    const resultId = searchParams.get('result');
+
+    // Bypass if we are loading a specific result
+    if (resultId) return;
 
     if (lat && lng && !coordinates) {
       const coords = { lat: parseFloat(lat), lng: parseFloat(lng) };
@@ -153,7 +219,9 @@ function DashboardContent() {
   // Set initial location from profile if available
   useEffect(() => {
     const hasSearchParams = searchParams.get('lat') && searchParams.get('lng');
-    if (profile && !coordinates && !hasSearchParams) {
+    const hasResultParam = searchParams.get('result');
+    
+    if (profile && !coordinates && !hasSearchParams && !hasResultParam) {
       const coords = { lat: profile.latitude, lng: profile.longitude };
       handleLocationSelect(coords, profile.location_name);
     }
@@ -168,10 +236,11 @@ function DashboardContent() {
 
   // Auto-trigger live analysis when switching to live view if coordinates exist but no data yet
   useEffect(() => {
-    if (viewMode === 'live' && coordinates && !geoJsonData && !isLoading && !error) {
+    const hasResultParam = searchParams.get('result');
+    if (viewMode === 'live' && coordinates && !geoJsonData && !isLoading && !error && !hasResultParam) {
       startAnalysis(coordinates, locationName);
     }
-  }, [viewMode, coordinates, geoJsonData, isLoading, error, startAnalysis, locationName]);
+  }, [viewMode, coordinates, geoJsonData, isLoading, error, startAnalysis, locationName, searchParams]);
 
   // Handle Offline/Online Status
   useEffect(() => {
@@ -259,7 +328,7 @@ function DashboardContent() {
               <AnalysisLoadingOverlay 
                 isLoading={isLoading} 
                 message={loadingMessage} 
-                error={error} 
+                error={resultNotFoundError ? 'notFound' : error} 
                 onRetry={startAnalysis}
               />
 

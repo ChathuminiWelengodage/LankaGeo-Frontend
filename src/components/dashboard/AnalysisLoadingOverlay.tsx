@@ -5,7 +5,7 @@ import React from 'react';
 interface AnalysisLoadingOverlayProps {
   isLoading: boolean;
   message?: string;
-  error?: 'timeout' | 'offline' | null;
+  error?: 'timeout' | 'offline' | 'notFound' | null;
   onRetry?: () => void;
 }
 
@@ -60,28 +60,32 @@ export default function AnalysisLoadingOverlay({
             <div className="flex items-center gap-12">
               <div className="w-40 h-40 bg-ruby-alert/20 rounded-full flex items-center justify-center flex-shrink-0 border border-ruby-alert/30">
                 <span className="material-symbols-outlined text-ruby-alert text-[20px]">
-                  {error === 'timeout' ? 'timer_off' : 'cloud_off'}
+                  {error === 'timeout' ? 'timer_off' : error === 'offline' ? 'cloud_off' : 'error'}
                 </span>
               </div>
               <div>
                 <h3 className="text-white text-[14px] font-bold m-0 leading-tight uppercase tracking-tight">
-                  {error === 'timeout' ? 'Analysis Timeout (504)' : 'Connection Lost'}
+                  {error === 'timeout' ? 'Analysis Timeout (504)' : error === 'offline' ? 'Connection Lost' : 'Result Not Found (404)'}
                 </h3>
                 <p className="text-text-secondary text-[12px] m-0 mt-2 line-clamp-1">
                   {error === 'timeout' 
                     ? 'The Google Earth Engine computation took longer than expected.' 
-                    : 'You are currently offline. Please check internet connection.'}
+                    : error === 'offline'
+                    ? 'You are currently offline. Please check internet connection.'
+                    : 'The requested analysis result does not exist or has expired.'}
                 </p>
               </div>
             </div>
 
-            <button 
-              onClick={onRetry}
-              className="btn-primary h-36 px-16 gap-8 bg-ruby-alert hover:bg-ruby-alert/80 border-none text-[12px] font-bold flex-shrink-0"
-            >
-              <span className="material-symbols-outlined text-[18px]">refresh</span>
-              {error === 'timeout' ? 'Retry Analysis' : 'Reconnect & Retry'}
-            </button>
+            {error !== 'notFound' && (
+              <button 
+                onClick={onRetry}
+                className="btn-primary h-36 px-16 gap-8 bg-ruby-alert hover:bg-ruby-alert/80 border-none text-[12px] font-bold flex-shrink-0"
+              >
+                <span className="material-symbols-outlined text-[18px]">refresh</span>
+                {error === 'timeout' ? 'Retry Analysis' : 'Reconnect & Retry'}
+              </button>
+            )}
           </div>
         </div>
       )}
