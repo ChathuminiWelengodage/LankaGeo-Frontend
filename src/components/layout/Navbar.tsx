@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 
@@ -29,10 +30,16 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className={`fixed top-0 w-full z-50 bg-sys-layer-01/95 backdrop-blur-md border-b border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.4)] h-64 px-24 md:px-48 flex items-center justify-between transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
+      <nav className={`fixed top-0 w-full z-50 bg-sys-layer-01/95 backdrop-blur-md border-b border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.4)] h-64 pl-12 pr-24 md:pl-24 md:pr-48 flex items-center justify-between transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="flex items-center">
-          <Link href="/" className="text-white text-lg font-bold tracking-tight hover:text-accent-primary transition-colors">
-            LankaGeo
+          <Link href="/" className="relative w-30 h-30 transition-all hover:opacity-80 active:scale-95 group">
+            <Image
+              src="/Images/logo.png"
+              alt="LankaGeo Logo"
+              fill
+              className="object-contain transition-all group-hover:drop-shadow-[0_0_8px_rgba(15,98,254,0.6)]"
+              priority
+            />
           </Link>
         </div>
 
