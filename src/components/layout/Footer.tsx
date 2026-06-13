@@ -2,19 +2,25 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const Footer = () => {
   return (
     <footer className="w-full border-t border-outline-variant bg-surface-dim">
       <div className="flex flex-col md:flex-row justify-between items-center max-w-screen-2xl mx-auto gap-4 py-6 px-12">
         <div className="flex flex-col items-start">
-          <h4 className="font-bold text-on-surface uppercase tracking-tight text-h4 font-h4">
-            LankaGeo
-          </h4>
-          <p className="text-[10px] font-medium text-on-surface-variant uppercase opacity-70">
-            © 2026 LankaGeo AGENCY INTELLIGENCE PLATFORM
-          </p>
-        </div>
+         <Link href="/" className="relative w-30 h-30">
+         <Image
+          src="/Images/logo.png"
+          alt="LankaGeo Logo"
+          fill
+          className="object-contain"
+        />
+        </Link>
+        <p className="text-[10px] font-medium text-on-surface-variant uppercase opacity-70 -mt-2">
+           © 2026 LankaGeo AGENCY INTELLIGENCE PLATFORM
+        </p>
+      </div>
         <div className="flex items-center gap-3">
           <Link 
             href="#" 
