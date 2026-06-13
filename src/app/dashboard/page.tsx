@@ -348,7 +348,7 @@ function DashboardContent() {
           </div>
           
           <div className="flex-grow max-w-xl">
-            <div className="interactive-glow rounded-4 overflow-hidden">
+            <div className="interactive-glow rounded-4">
               <LocationSearchBar 
                 onLocationSelect={handleLocationSelect}
                 isLoading={isLoading}
