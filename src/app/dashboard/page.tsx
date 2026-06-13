@@ -12,7 +12,7 @@ import AnalysisLoadingOverlay from '@/components/dashboard/AnalysisLoadingOverla
 import SidebarTabs from '@/components/dashboard/SidebarTabs';
 import LiveFloodView from '@/components/dashboard/LiveFloodView';
 import HistoricalRiskView from '@/components/dashboard/HistoricalRiskView';
-import { apiFetch, ApiError } from '@/lib/api';
+import { apiFetch, ApiError, fetchLivePolygons } from '@/lib/api';
 import { MOCK_GEOJSON } from '@/lib/mock-flood-data';
 import { HistoricalProvider, useHistorical } from '@/context/HistoricalContext';
 import { useUser } from '@/context/UserContext';
@@ -51,6 +51,42 @@ function DashboardContent() {
   const [liveAnalysisResult, setLiveAnalysisResult] = useState<any>(null);
   const [resultNotFoundError, setResultNotFoundError] = useState(false);
   const { viewMode, currentData, selectedYear, yearsData, fetchTrendData } = useHistorical();
+
+  const fetchDatabasePolygons = useCallback(async () => {
+    try {
+      const data = await fetchLivePolygons();
+      if (Array.isArray(data) && data.length > 0) {
+        // Combine all geojson results into a single FeatureCollection
+        const allFeatures = data.flatMap((item: any) => {
+          const geojson = item.result || item.geojson || (item.type === 'FeatureCollection' ? item : null);
+          if (geojson && geojson.features) return geojson.features;
+          if (geojson && geojson.type === 'Feature') return [geojson];
+          // If the item itself is a feature
+          if (item.type === 'Feature') return [item];
+          return [];
+        });
+
+        if (allFeatures.length > 0) {
+          setGeoJsonData({
+            type: 'FeatureCollection',
+            features: allFeatures
+          });
+        }
+      }
+    } catch (err) {
+      // Silently fail for database polygon fetch to not disrupt the main analysis flow
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Persistent polygons could not be loaded from database:', err);
+      }
+    }
+  }, []);
+
+  // Initial load of database polygons when in live mode and no coordinates selected
+  useEffect(() => {
+    if (viewMode === 'live' && !coordinates && !geoJsonData && !isLoading) {
+      fetchDatabasePolygons();
+    }
+  }, [viewMode, coordinates, geoJsonData, isLoading, fetchDatabasePolygons]);
   
   const startAnalysis = useCallback(async (coords?: { lat: number; lng: number }, name?: string) => {
     if (!navigator.onLine) {

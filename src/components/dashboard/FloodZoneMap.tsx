@@ -26,14 +26,14 @@ const TRANSITION_DURATION = 300;
 export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl }: FloodZoneMapProps) {
   const map = useMap();
   const { addGeoJson } = useFloodData(map);
-  const { currentData, setTransitioning } = useHistorical();
+  const { viewMode, historicalSubMode, currentData, setTransitioning } = useHistorical();
   
   // Layer states
   const [heatmapActive, setHeatmapActive] = useState(true);
   const [boundariesActive, setBoundariesActive] = useState(true);
   const [mapType, setMapType] = useState<'hybrid' | 'terrain'>('hybrid');
 
-  const activeLayersRef = useRef<google.maps.ImageMapType[]>([]);
+  const activeLayersRef = useRef<Record<string, google.maps.ImageMapType>>({});
   const currentTileUrlRef = useRef<string | null>(null);
 
   // Handle zooming to search location
@@ -47,15 +47,20 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
   useEffect(() => {
     if (!map || typeof google === 'undefined') return;
 
-    const targetUrl = currentData.tile_url || liveTileUrl;
+    // Determine target URL based on mode
+    let targetUrl = liveTileUrl;
+    if (viewMode === 'historical') {
+      targetUrl = currentData.tile_url;
+    }
+
     if (!targetUrl || targetUrl === currentTileUrlRef.current) {
       if (!targetUrl) {
-         // Cleanup if no URL
-         activeLayersRef.current.forEach(layer => {
+         // Cleanup all layers if no URL
+         Object.values(activeLayersRef.current).forEach(layer => {
            const idx = map.overlayMapTypes.getArray().indexOf(layer);
            if (idx !== -1) map.overlayMapTypes.removeAt(idx);
          });
-         activeLayersRef.current = [];
+         activeLayersRef.current = {};
          currentTileUrlRef.current = null;
       }
       return;
@@ -63,22 +68,24 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
 
     setTransitioning(true);
 
+    const layerId = `${viewMode}-${historicalSubMode}-${targetUrl}`;
+    
     const newLayer = new google.maps.ImageMapType({
       getTileUrl: (coord, zoom) => {
-        return targetUrl
+        return targetUrl!
           .replace('{x}', coord.x.toString())
           .replace('{y}', coord.y.toString())
           .replace('{z}', zoom.toString());
       },
       tileSize: new google.maps.Size(256, 256),
       opacity: 0,
-      name: 'FloodHeatmap'
+      name: `FloodLayer-${viewMode}`
     });
 
     // Add new layer to map
     map.overlayMapTypes.push(newLayer);
-    const oldLayers = [...activeLayersRef.current];
-    activeLayersRef.current = [newLayer];
+    const oldLayers = Object.values(activeLayersRef.current);
+    activeLayersRef.current = { [layerId]: newLayer };
     currentTileUrlRef.current = targetUrl;
 
     // Animate Cross-Fade
@@ -109,21 +116,28 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
     };
 
     requestAnimationFrame(animate);
-  }, [map, currentData.tile_url, liveTileUrl, heatmapActive, setTransitioning]);
+  }, [map, viewMode, historicalSubMode, currentData.tile_url, liveTileUrl, heatmapActive, setTransitioning]);
 
   // Handle Heatmap Toggle Opacity
   useEffect(() => {
-    activeLayersRef.current.forEach(layer => {
+    Object.values(activeLayersRef.current).forEach(layer => {
       layer.setOpacity(heatmapActive ? 1 : 0);
     });
   }, [heatmapActive]);
 
-  // Handle GeoJSON data updates
+  // Handle GeoJSON data updates - ONLY show polygons in LIVE mode
   useEffect(() => {
-    if (map && geoJsonData) {
-      addGeoJson(geoJsonData);
+    if (map) {
+      if (viewMode === 'live' && geoJsonData) {
+        addGeoJson(geoJsonData);
+      } else {
+        // Clear polygons in historical mode
+        map.data.forEach((feature) => {
+          map.data.remove(feature);
+        });
+      }
     }
-  }, [map, geoJsonData, addGeoJson]);
+  }, [map, geoJsonData, addGeoJson, viewMode]);
 
   // Handle Boundaries Toggle (map.data visibility)
   useEffect(() => {

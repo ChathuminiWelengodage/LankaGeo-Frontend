@@ -76,6 +76,33 @@ export async function apiFetch(endpoint: string, options: RequestInit & { respon
 }
 
 /**
+ * Triggers a live flood analysis for a specific location.
+ */
+export async function analyzeLive(lat: number, lng: number, radius_km: number = 5): Promise<unknown> {
+  return apiFetch('/api/v1/analyze/live', {
+    method: 'POST',
+    body: JSON.stringify({ lat, lng, radius_km }),
+  });
+}
+
+/**
+ * Triggers a historical trend analysis for a specific location.
+ */
+export async function analyzeTrend(lat: number, lng: number, years: number = 5): Promise<unknown> {
+  return apiFetch('/api/v1/analyze/trend', {
+    method: 'POST',
+    body: JSON.stringify({ lat, lng, years }),
+  });
+}
+
+/**
+ * Fetches all live flood analysis results from the database.
+ */
+export async function fetchLivePolygons(): Promise<unknown[]> {
+  return apiFetch('/api/v1/analyze/live');
+}
+
+/**
  * Fetches a previously stored analysis result by its request ID.
  * @param requestId The ID of the analysis request to fetch.
  */

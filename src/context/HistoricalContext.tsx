@@ -8,6 +8,7 @@ interface HistoricalContextType {
   selectedYear: number | null;
   isTransitioning: boolean;
   viewMode: 'live' | 'historical';
+  historicalSubMode: 'composite' | 'heatmap';
   currentData: HistoricalData;
   yearsData: HistoricalData[];
   isTrendLoading: boolean;
@@ -16,6 +17,7 @@ interface HistoricalContextType {
   selectYear: (year: number | null) => void;
   setTransitioning: (val: boolean) => void;
   setViewMode: (mode: 'live' | 'historical') => void;
+  setHistoricalSubMode: (mode: 'composite' | 'heatmap') => void;
   fetchTrendData: (lat: number, lng: number) => Promise<void>;
   dismissTrendError: () => void;
 }
@@ -26,8 +28,10 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [isTransitioning, setTransitioning] = useState(false);
   const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
-  const [yearsData, setYearsData] = useState<HistoricalData[]>(HISTORICAL_YEARS_DATA); // Init with mock or empty array depending on preference
+  const [historicalSubMode, setHistoricalSubMode] = useState<'composite' | 'heatmap'>('composite');
+  const [yearsData, setYearsData] = useState<HistoricalData[]>(HISTORICAL_YEARS_DATA);
   const [compositeData, setCompositeData] = useState<HistoricalData>(COMPOSITE_FLOOD_DATA);
+  const [heatmapUrl, setHeatmapUrl] = useState<string | undefined>(undefined);
   const [isTrendLoading, setIsTrendLoading] = useState(false);
   const [trendError, setTrendError] = useState<'timeout' | 'generic' | null>(null);
   const [lastCoordinates, setLastCoordinates] = useState<{ lat: number; lng: number } | null>(null);
@@ -38,25 +42,25 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
     setTrendError(null);
 
     try {
-      // Endpoint expects { latitude, longitude, years }
       const response = await apiFetch('/api/v1/analyze/trend', {
         method: 'POST',
-        body: JSON.stringify({
-          latitude: lat,
-          longitude: lng,
-          years: 5
-        })
+        body: JSON.stringify({ lat, lng, years: 5 })
       });
 
-      // Assuming the backend returns { years_data: HistoricalData[], composite: HistoricalData }
-      // Map the response to our data structures
-      if (response && response.years_data && response.composite) {
+      if (response && response.years_data) {
          setYearsData(response.years_data);
-         setCompositeData(response.composite);
-         // Reset selected year to show composite by default on new fetch
+         
+         // Backend now returns composite_tile_url and trend_heatmap_url
+         const composite = {
+           ...COMPOSITE_FLOOD_DATA,
+           tile_url: response.composite_tile_url || response.composite?.tile_url || COMPOSITE_FLOOD_DATA.tile_url,
+           ...response.metadata
+         };
+         setCompositeData(composite);
+         setHeatmapUrl(response.trend_heatmap_url);
+         
          setSelectedYear(null);
       } else {
-         // Fallback to mock data if response format is unexpected
          console.warn('Unexpected response format from /analyze/trend, using mock data.');
          setYearsData(HISTORICAL_YEARS_DATA);
          setCompositeData(COMPOSITE_FLOOD_DATA);
@@ -69,7 +73,6 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
       } else {
         setTrendError('generic');
       }
-      // On error, fallback to mock data for demo purposes, or leave previous data
       setYearsData(HISTORICAL_YEARS_DATA);
       setCompositeData(COMPOSITE_FLOOD_DATA);
     } finally {
@@ -82,9 +85,12 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const currentData = useMemo(() => {
+    if (viewMode === 'historical' && historicalSubMode === 'heatmap' && heatmapUrl) {
+      return { ...compositeData, tile_url: heatmapUrl };
+    }
     if (selectedYear === null) return compositeData;
     return yearsData.find(d => d.year === selectedYear) || compositeData;
-  }, [selectedYear, yearsData, compositeData]);
+  }, [selectedYear, yearsData, compositeData, viewMode, historicalSubMode, heatmapUrl]);
 
   const selectYear = (year: number | null) => {
     if (isTransitioning) return;
@@ -95,6 +101,7 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
     selectedYear,
     isTransitioning,
     viewMode,
+    historicalSubMode,
     currentData,
     yearsData,
     isTrendLoading,
@@ -103,6 +110,7 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
     selectYear,
     setTransitioning,
     setViewMode,
+    setHistoricalSubMode,
     fetchTrendData,
     dismissTrendError
   };

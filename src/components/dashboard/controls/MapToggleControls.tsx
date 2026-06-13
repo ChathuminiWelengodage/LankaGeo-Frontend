@@ -2,6 +2,8 @@
 
 import React from 'react';
 
+import { useHistorical } from '@/context/HistoricalContext';
+
 interface MapToggleControlsProps {
   heatmapActive: boolean;
   onHeatmapToggle: () => void;
@@ -19,8 +21,54 @@ export default function MapToggleControls({
   baseMapType,
   onBaseMapToggle
 }: MapToggleControlsProps) {
+  const { viewMode, setViewMode, historicalSubMode, setHistoricalSubMode } = useHistorical();
+
   return (
     <div className="absolute right-16 top-1/2 -translate-y-1/2 flex flex-col gap-12 z-20">
+      {/* Mode Toggle (Live vs Historical) */}
+      <div className="flex flex-col bg-sys-layer-01 border border-white/10 rounded-8 overflow-hidden shadow-lg mb-8">
+        <button
+          onClick={() => setViewMode('live')}
+          className={`px-8 py-10 text-[10px] font-bold uppercase transition-all ${
+            viewMode === 'live' ? 'bg-accent-primary text-white' : 'text-text-muted hover:bg-white/5'
+          }`}
+        >
+          Live
+        </button>
+        <button
+          onClick={() => setViewMode('historical')}
+          className={`px-8 py-10 text-[10px] font-bold uppercase transition-all ${
+            viewMode === 'historical' ? 'bg-accent-primary text-white' : 'text-text-muted hover:bg-white/5'
+          }`}
+        >
+          Hist
+        </button>
+      </div>
+
+      {/* Historical Sub-mode Toggle (Only visible in historical mode) */}
+      {viewMode === 'historical' && (
+        <div className="flex flex-col bg-sys-layer-01 border border-white/10 rounded-8 overflow-hidden shadow-lg animate-fade-in mb-8">
+          <button
+            onClick={() => setHistoricalSubMode('composite')}
+            className={`px-4 py-8 text-[9px] font-bold uppercase transition-all ${
+              historicalSubMode === 'composite' ? 'bg-magenta-glow/40 text-white' : 'text-text-muted hover:bg-white/5'
+            }`}
+            title="Composite View"
+          >
+            Comp
+          </button>
+          <button
+            onClick={() => setHistoricalSubMode('heatmap')}
+            className={`px-4 py-8 text-[9px] font-bold uppercase transition-all ${
+              historicalSubMode === 'heatmap' ? 'bg-magenta-glow/40 text-white' : 'text-text-muted hover:bg-white/5'
+            }`}
+            title="Heatmap View"
+          >
+            Heat
+          </button>
+        </div>
+      )}
+
       {/* Heatmap Toggle */}
       <button
         onClick={onHeatmapToggle}

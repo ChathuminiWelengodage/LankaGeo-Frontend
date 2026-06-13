@@ -36,20 +36,28 @@ export default function LiveFloodView({
           {(selectedYear || showLiveResults) ? (
             <div className="space-y-16 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="flex justify-between items-center py-8 border-b border-white/5">
-                <span className="text-text-secondary text-[13px]">{showLiveResults ? 'Extracted Zones' : 'Monitored Areas'}</span>
-                <span className="text-white font-mono text-[13px]">{displayData.total_zones || 0} Zone Nodes</span>
+                <span className="text-text-secondary text-[13px]">Risk Level</span>
+                <span className={`font-bold text-[13px] px-8 py-2 rounded-4 ${
+                  (displayData.risk_level === 'Critical' || displayData.severity_level === 3) ? 'bg-ruby-alert/20 text-ruby-alert' : 
+                  (displayData.risk_level === 'Moderate' || displayData.severity_level === 2) ? 'bg-[#FFA500]/20 text-[#FFA500]' : 
+                  'bg-[#0000FF]/20 text-[#0000FF]'
+                }`}>
+                  {displayData.risk_level || (displayData.severity_level === 3 ? 'Critical' : displayData.severity_level === 2 ? 'Moderate' : 'Low')}
+                </span>
               </div>
               <div className="flex justify-between items-center py-8 border-b border-white/5">
-                <span className="text-text-secondary text-[13px]">{showLiveResults ? 'Model Confidence' : 'Flood Frequency Index'}</span>
-                <span className={`font-mono text-[13px] px-8 py-2 rounded-4 ${
-                  (displayData.flood_frequency_index || displayData.confidence || 0) > 0.7 ? 'bg-ruby-alert/20 text-ruby-alert' : 'bg-[#14B8A6]/20 text-[#14B8A6]'
-                }`}>
-                  {(displayData.flood_frequency_index || displayData.confidence || 0).toFixed(2)} / 1.00
+                <span className="text-text-secondary text-[13px]">Model Confidence</span>
+                <span className="text-white font-mono text-[13px]">
+                  {((displayData.confidence_score || displayData.confidence || 0.85) * (displayData.confidence_score > 1 ? 1 : 100)).toFixed(1)}%
                 </span>
               </div>
               <div className="flex justify-between items-center py-8 border-b border-white/5">
                 <span className="text-text-secondary text-[13px]">Est. Flood Area</span>
-                <span className="text-white font-mono text-[13px]">{displayData.max_area_km2 || displayData.area_km2 || 0} km²</span>
+                <span className="text-white font-mono text-[13px]">{displayData.affected_area_km2 || displayData.max_area_km2 || displayData.area_km2 || 0} km²</span>
+              </div>
+              <div className="flex justify-between items-center py-8 border-b border-white/5">
+                <span className="text-text-secondary text-[13px]">Satellite Source</span>
+                <span className="text-white font-mono text-[13px]">{displayData.satellite_source || 'Sentinel-1 SAR'}</span>
               </div>
               <p className="text-text-muted text-[12px] leading-relaxed mt-16 italic">
                 &quot;{displayData.impact_summary || displayData.summary || 'Analysis complete. Detailed geospatial vector data has been generated for the selected region.'}&quot;

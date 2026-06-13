@@ -12,12 +12,12 @@ export const MOCK_GEOJSON = {
       },
       properties: {
         zone_id: "FLD-2026-98X",
-        severity_level: "critical",
-        area_km2: 12.45,
-        water_type: "new flood",
-        signal1: true,
-        signal2: false,
-        signal3: true
+        severity_level: 3, // Critical
+        affected_area_km2: 12.45,
+        confidence_score: 94.5,
+        satellite_source: "Sentinel-1 SAR",
+        risk_level: "Critical",
+        analysis_timestamp: "2026-06-13T10:30:00Z"
       }
     },
     {
@@ -31,12 +31,12 @@ export const MOCK_GEOJSON = {
       },
       properties: {
         zone_id: "FLD-2026-99Y",
-        severity_level: "moderate",
-        area_km2: 8.12,
-        water_type: "seasonal",
-        signal1: true,
-        signal2: true,
-        signal3: false
+        severity_level: 2, // Moderate
+        affected_area_km2: 8.12,
+        confidence_score: 88.2,
+        satellite_source: "Sentinel-1 SAR",
+        risk_level: "Moderate",
+        analysis_timestamp: "2026-06-13T10:30:00Z"
       }
     }
   ]
@@ -51,6 +51,11 @@ export interface HistoricalData {
   max_area_km2: number;
   pixels_flooded: number;
   peak_flood_month: string;
+  confidence_score?: number;
+  satellite_source?: string;
+  risk_level?: string;
+  analysis_timestamp?: string;
+  affected_area_km2?: number;
 }
 
 export const HISTORICAL_YEARS_DATA: HistoricalData[] = [
