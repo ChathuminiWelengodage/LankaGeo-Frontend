@@ -1,7 +1,7 @@
 'use client';
 
 
-import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import React, { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { useSearchParams } from 'next/navigation';
 import LocationSearchBar from '@/components/dashboard/LocationSearchBar';
@@ -198,10 +198,14 @@ function DashboardContent() {
     }, 0);
   }, [viewMode, startAnalysis, fetchTrendData]);
 
+  const lastAttemptedResultId = useRef<string | null>(null);
+
   // Handle shared result loading from ?result= parameter
   useEffect(() => {
     const resultId = searchParams.get('result');
-    if (!resultId || requestId === resultId) return;
+    if (!resultId || requestId === resultId || lastAttemptedResultId.current === resultId) return;
+
+    lastAttemptedResultId.current = resultId;
 
     const loadStoredResult = async () => {
       setIsLoading(true);
@@ -213,6 +217,10 @@ function DashboardContent() {
       setLiveAnalysisResult(null);
 
       try {
+        if (resultId.startsWith('DEMO-')) {
+          throw new ApiError('Not Found', 404);
+        }
+        
         const data = await apiFetch(`/analyze/result/${resultId}`);
         
         // Update state with fetched result
