@@ -76,7 +76,7 @@ export default function ExportPanel({
   const handleLivePdfDownload = async () => {
     setIsExportingPdf(true);
     try {
-      const blob = await apiFetch('/reports/live', {
+      const blob = await apiFetch('/api/v1/reports/live', {
         method: 'POST',
         responseType: 'blob',
         body: JSON.stringify({
@@ -105,7 +105,7 @@ export default function ExportPanel({
   const handleHistoricalPdfDownload = async () => {
     setIsExportingPdf(true);
     try {
-      const blob = await apiFetch('/reports/historical', {
+      const blob = await apiFetch('/api/v1/reports/historical', {
         method: 'POST',
         responseType: 'blob',
         body: JSON.stringify({

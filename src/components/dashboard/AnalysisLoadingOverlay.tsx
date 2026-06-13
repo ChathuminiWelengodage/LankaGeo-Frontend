@@ -5,7 +5,7 @@ import React from 'react';
 interface AnalysisLoadingOverlayProps {
   isLoading: boolean;
   message?: string;
-  error?: 'timeout' | 'offline' | 'notFound' | null;
+  error?: 'timeout' | 'offline' | 'notFound' | 'server-error' | null;
   onRetry?: () => void;
 }
 
@@ -60,16 +60,18 @@ export default function AnalysisLoadingOverlay({
             <div className="flex items-center gap-12">
               <div className="w-40 h-40 bg-ruby-alert/20 rounded-full flex items-center justify-center flex-shrink-0 border border-ruby-alert/30">
                 <span className="material-symbols-outlined text-ruby-alert text-[20px]">
-                  {error === 'timeout' ? 'timer_off' : error === 'offline' ? 'cloud_off' : 'error'}
+                  {error === 'timeout' ? 'timer_off' : error === 'server-error' ? 'dns' : error === 'offline' ? 'cloud_off' : 'error'}
                 </span>
               </div>
               <div>
                 <h3 className="text-white text-[14px] font-bold m-0 leading-tight uppercase tracking-tight">
-                  {error === 'timeout' ? 'Analysis Timeout (504)' : error === 'offline' ? 'Connection Lost' : 'Result Not Found (404)'}
+                  {error === 'timeout' ? 'Analysis Timeout (504)' : error === 'server-error' ? 'Pipeline Error (500)' : error === 'offline' ? 'Connection Lost' : 'Result Not Found (404)'}
                 </h3>
                 <p className="text-text-secondary text-[12px] m-0 mt-2 line-clamp-1">
                   {error === 'timeout' 
                     ? 'The Google Earth Engine computation took longer than expected.' 
+                    : error === 'server-error'
+                    ? 'The backend encountered an internal error processing the satellite data.'
                     : error === 'offline'
                     ? 'You are currently offline. Please check internet connection.'
                     : 'The requested analysis result does not exist or has expired.'}

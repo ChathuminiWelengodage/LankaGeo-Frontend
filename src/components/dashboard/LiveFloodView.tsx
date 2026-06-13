@@ -7,23 +7,70 @@ interface LiveFloodViewProps {
   startAnalysis: () => void;
   coordinates: { lat: number; lng: number } | null;
   error: string | null;
+  selectedYear: number | null;
+  currentData: any;
+  liveAnalysisResult?: any;
 }
 
 export default function LiveFloodView({ 
   isLoading, 
   startAnalysis, 
   coordinates, 
-  error
+  error,
+  selectedYear,
+  currentData,
+  liveAnalysisResult
 }: LiveFloodViewProps) {
+  // Determine if we should show live results or historical data
+  const showLiveResults = !selectedYear && liveAnalysisResult;
+  const displayData = showLiveResults ? liveAnalysisResult : currentData;
+
   return (
-    <div className="h-full p-24 flex flex-col gap-24">
-      {/* Target Location Card - High visibility context */}
-      <div className="card-standard !p-16 border-accent-primary/20 bg-accent-primary/5">
-        <div className="flex items-center gap-12 mb-12">
-          <div className="w-32 h-32 rounded-full bg-accent-primary/20 flex items-center justify-center">
-            <span className="material-symbols-outlined text-accent-primary text-[18px]">location_on</span>
-          </div>
-          <h4 className="text-white text-[14px] font-bold uppercase tracking-wider">Target Monitor</h4>
+    <div className="flex flex-col space-y-24 p-24">
+      <div className="card-standard min-h-[300px] flex flex-col justify-between !hover:translate-y-0">
+        <div>
+          <h3 className="text-white text-[18px] mb-16 font-bold tracking-tight">
+            {selectedYear ? `Historical Runoff: ${selectedYear}` : showLiveResults ? 'Live ML Analysis Results' : 'Analysis Parameters'}
+          </h3>
+          
+          {(selectedYear || showLiveResults) ? (
+            <div className="space-y-16 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="flex justify-between items-center py-8 border-b border-white/5">
+                <span className="text-text-secondary text-[13px]">{showLiveResults ? 'Extracted Zones' : 'Monitored Areas'}</span>
+                <span className="text-white font-mono text-[13px]">{displayData.total_zones || 0} Zone Nodes</span>
+              </div>
+              <div className="flex justify-between items-center py-8 border-b border-white/5">
+                <span className="text-text-secondary text-[13px]">{showLiveResults ? 'Model Confidence' : 'Flood Frequency Index'}</span>
+                <span className={`font-mono text-[13px] px-8 py-2 rounded-4 ${
+                  (displayData.flood_frequency_index || displayData.confidence || 0) > 0.7 ? 'bg-ruby-alert/20 text-ruby-alert' : 'bg-[#14B8A6]/20 text-[#14B8A6]'
+                }`}>
+                  {(displayData.flood_frequency_index || displayData.confidence || 0).toFixed(2)} / 1.00
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-8 border-b border-white/5">
+                <span className="text-text-secondary text-[13px]">Est. Flood Area</span>
+                <span className="text-white font-mono text-[13px]">{displayData.max_area_km2 || displayData.area_km2 || 0} km²</span>
+              </div>
+              <p className="text-text-muted text-[12px] leading-relaxed mt-16 italic">
+                &quot;{displayData.impact_summary || displayData.summary || 'Analysis complete. Detailed geospatial vector data has been generated for the selected region.'}&quot;
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-16">
+              <div className="flex justify-between items-center py-8 border-b border-white/5">
+                <span className="text-text-secondary text-[13px]">Satellite Path</span>
+                <span className="text-white font-mono text-[13px]">DES-9284</span>
+              </div>
+              <div className="flex justify-between items-center py-8 border-b border-white/5">
+                <span className="text-text-secondary text-[13px]">Orbit Type</span>
+                <span className="text-white font-mono text-[13px]">Sun-Sync</span>
+              </div>
+              <div className="flex justify-between items-center py-8 border-b border-white/5">
+                <span className="text-text-secondary text-[13px]">Resolution</span>
+                <span className="text-white font-mono text-[13px]">0.5m GSD</span>
+              </div>
+            </div>
+          )}
         </div>
         
         {coordinates ? (

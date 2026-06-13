@@ -80,7 +80,7 @@ export async function apiFetch(endpoint: string, options: RequestInit & { respon
  * @param requestId The ID of the analysis request to fetch.
  */
 export async function fetchAnalysisResult(requestId: string): Promise<unknown> {
-  return apiFetch(`/analyze/result/${requestId}`);
+  return apiFetch(`/api/v1/analyze/result/${requestId}`);
 }
 
 /**

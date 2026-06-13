@@ -28,14 +28,14 @@ const PROGRESS_MESSAGES = [
 ];
 
 function DashboardContent() {
-  const { profile } = useUser();
+  const { user, profile, authModal } = useUser();
   const searchParams = useSearchParams();
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(PROGRESS_MESSAGES[0]);
   const [validationError, setValidationError] = useState<string>('');
-  const [error, setError] = useState<'timeout' | 'offline' | null>(() => {
+  const [error, setError] = useState<'timeout' | 'offline' | 'server-error' | null>(() => {
     if (typeof window !== 'undefined' && !navigator.onLine) return 'offline';
     return null;
   });
@@ -48,6 +48,7 @@ function DashboardContent() {
   } | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
+  const [liveAnalysisResult, setLiveAnalysisResult] = useState<any>(null);
   const [resultNotFoundError, setResultNotFoundError] = useState(false);
   const { viewMode, currentData, selectedYear, yearsData, fetchTrendData } = useHistorical();
   
@@ -70,6 +71,7 @@ function DashboardContent() {
     setImpactData(null);
     setRequestId(null);
     setResultNotFoundError(false);
+    setLiveAnalysisResult(null);
 
     try {
       const data = await apiFetch('/analyze/live', {
@@ -86,6 +88,7 @@ function DashboardContent() {
       if (id) {
         setRequestId(id);
         setGeoJsonData(data.result || data);
+        setLiveAnalysisResult(data);
         
         // Handle impact metrics if provided by API
         if (data.impact) {
@@ -93,11 +96,17 @@ function DashboardContent() {
         } else if (data.impact_metrics) {
           setImpactData(data.impact_metrics);
         }
+
+        // Capture tile_url if provided
+        if (data.tile_url || data.tileUrl) {
+          setTileUrl(data.tile_url || data.tileUrl);
+        }
       } else {
         // If API succeeded but no ID, generate a local one for sharing capability
         const fallbackId = 'LOC-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         setRequestId(fallbackId);
-        setGeoJsonData(data);
+        setGeoJsonData(data.result || data);
+        setLiveAnalysisResult(data);
       }
     } catch (err) {
       console.error('Analysis failed:', err);
@@ -111,6 +120,8 @@ function DashboardContent() {
           setGeoJsonData(MOCK_GEOJSON);
           setRequestId('DEMO-' + Math.random().toString(36).substring(2, 9).toUpperCase());
           setTileUrl('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&opacity=0.4');
+        } else if (err.status === 500) {
+          setError('server-error');
         } else {
           // Generic API error
           setError('timeout'); // Defaulting to timeout/retry UI for other server errors
@@ -128,7 +139,7 @@ function DashboardContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [coordinates, locationName]);
+  }, [coordinates, locationName, viewMode, fetchTrendData]);
 
   const handleLocationSelect = useCallback((coords: { lat: number; lng: number }, name: string) => {
     setCoordinates(coords);
@@ -139,6 +150,7 @@ function DashboardContent() {
     setError(null);
     setValidationError('');
     setResultNotFoundError(false);
+    setLiveAnalysisResult(null);
     console.log('Selected coordinates:', coords, 'Name:', name);
     // Automatically trigger analysis on location select
     setTimeout(() => {
@@ -162,6 +174,7 @@ function DashboardContent() {
       setError(null);
       setGeoJsonData(null);
       setImpactData(null);
+      setLiveAnalysisResult(null);
 
       try {
         const data = await apiFetch(`/analyze/result/${resultId}`);
@@ -169,6 +182,7 @@ function DashboardContent() {
         // Update state with fetched result
         setRequestId(resultId);
         setGeoJsonData(data.result || data);
+        setLiveAnalysisResult(data);
         
         if (data.impact) {
           setImpactData(data.impact);
@@ -178,7 +192,10 @@ function DashboardContent() {
 
         if (data.latitude && data.longitude) {
           setCoordinates({ lat: data.latitude, lng: data.longitude });
+        } else if (data.lat && data.lng) {
+          setCoordinates({ lat: data.lat, lng: data.lng });
         }
+
         if (data.location_name) {
           setLocationName(data.location_name);
         }
@@ -387,6 +404,9 @@ function DashboardContent() {
                   startAnalysis={startAnalysis}
                   coordinates={coordinates}
                   error={error}
+                  selectedYear={selectedYear}
+                  currentData={currentData}
+                  liveAnalysisResult={liveAnalysisResult}
                 />
               ) : (
                 <HistoricalRiskView />
