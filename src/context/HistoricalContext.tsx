@@ -39,7 +39,7 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
 
     try {
       // Endpoint expects { latitude, longitude, years }
-      const response = await apiFetch('/analyze/trend', {
+      const response = await apiFetch('/api/v1/analyze/trend', {
         method: 'POST',
         body: JSON.stringify({
           latitude: lat,

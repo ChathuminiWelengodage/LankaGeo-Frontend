@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import LocationSearchBar from '../dashboard/LocationSearchBar';
 
@@ -14,6 +14,7 @@ interface AuthModalProps {
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [signupStep, setSignupStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');
@@ -120,7 +121,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
         alert('Registration complete! Monitoring active for ' + locationData.name);
         onClose();
-        router.push('/alerts');
+        if (pathname === '/' || pathname === '/join') {
+          router.push('/alerts');
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
       } finally {
@@ -137,7 +140,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       });
       if (error) throw error;
       onClose();
-      router.push('/alerts');
+      if (pathname === '/' || pathname === '/join') {
+        router.push('/alerts');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please check your credentials.");
     } finally {
