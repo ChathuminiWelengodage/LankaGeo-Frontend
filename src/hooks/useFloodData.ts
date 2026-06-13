@@ -4,11 +4,11 @@ import { SEVERITY_COLORS, MAP_STYLES, SeverityLevel } from '@/lib/map-styles';
 export interface GeoJSONProperties {
   zone_id: string;
   severity_level: SeverityLevel;
-  area_km2: number;
-  water_type: string;
-  signal1: boolean;
-  signal2: boolean;
-  signal3: boolean;
+  affected_area_km2: number;
+  confidence_score: number;
+  satellite_source: string;
+  risk_level: string;
+  analysis_timestamp: string;
 }
 
 export const useFloodData = (map: google.maps.Map | null) => {
@@ -39,7 +39,7 @@ export const useFloodData = (map: google.maps.Map | null) => {
       // Apply styling based on severity_level
       map.data.setStyle((feature) => {
         const severity = feature.getProperty('severity_level') as SeverityLevel;
-        const color = SEVERITY_COLORS[severity] || SEVERITY_COLORS.moderate;
+        const color = SEVERITY_COLORS[severity] || SEVERITY_COLORS[1];
 
         return {
           fillColor: color,
@@ -61,27 +61,32 @@ export const useFloodData = (map: google.maps.Map | null) => {
       const props = {
         zone_id: feature.getProperty('zone_id'),
         severity_level: feature.getProperty('severity_level'),
-        area_km2: feature.getProperty('area_km2'),
-        water_type: feature.getProperty('water_type'),
-        signal1: feature.getProperty('signal1'),
-        signal2: feature.getProperty('signal2'),
-        signal3: feature.getProperty('signal3'),
+        affected_area_km2: feature.getProperty('affected_area_km2') || feature.getProperty('area_km2'),
+        confidence_score: feature.getProperty('confidence_score'),
+        satellite_source: feature.getProperty('satellite_source'),
+        risk_level: feature.getProperty('risk_level'),
+        analysis_timestamp: feature.getProperty('analysis_timestamp'),
       } as GeoJSONProperties;
 
       if (!infoWindowRef.current) {
         infoWindowRef.current = new google.maps.InfoWindow();
       }
 
+      const severityLabels: Record<number, string> = {
+        1: 'Low (Seasonal)',
+        2: 'Moderate',
+        3: 'Critical'
+      };
+
       const content = `
-        <div style="padding: 12px; color: #111; font-family: sans-serif;">
-          <h3 style="margin: 0 0 8px 0; font-size: 16px;">Zone: ${props.zone_id}</h3>
-          <p style="margin: 4px 0;"><strong>Severity:</strong> <span style="text-transform: capitalize;">${props.severity_level}</span></p>
-          <p style="margin: 4px 0;"><strong>Area:</strong> ${props.area_km2.toFixed(2)} km²</p>
-          <p style="margin: 4px 0;"><strong>Water Type:</strong> ${props.water_type}</p>
-          <div style="margin-top: 8px; font-size: 12px; border-top: 1px solid #eee; pt: 8px;">
-            <p style="margin: 2px 0;">Signal 1: ${props.signal1 ? '✅' : '❌'}</p>
-            <p style="margin: 2px 0;">Signal 2: ${props.signal2 ? '✅' : '❌'}</p>
-            <p style="margin: 2px 0;">Signal 3: ${props.signal3 ? '✅' : '❌'}</p>
+        <div style="padding: 12px; color: #111; font-family: sans-serif; min-width: 200px;">
+          <h3 style="margin: 0 0 8px 0; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 4px;">Zone: ${props.zone_id}</h3>
+          <p style="margin: 4px 0;"><strong>Risk Level:</strong> <span style="color: ${SEVERITY_COLORS[props.severity_level] || '#333'}">${props.risk_level || severityLabels[props.severity_level] || 'Unknown'}</span></p>
+          <p style="margin: 4px 0;"><strong>Affected Area:</strong> ${props.affected_area_km2?.toFixed(2) || '0.00'} km²</p>
+          <p style="margin: 4px 0;"><strong>Confidence:</strong> ${props.confidence_score ? (props.confidence_score).toFixed(1) + '%' : 'N/A'}</p>
+          <div style="margin-top: 8px; font-size: 11px; color: #666; background: #f9f9f9; padding: 6px; border-radius: 4px;">
+            <p style="margin: 2px 0;">Source: ${props.satellite_source || 'Sentinel-1 SAR'}</p>
+            <p style="margin: 2px 0;">Analyzed: ${props.analysis_timestamp ? new Date(props.analysis_timestamp).toLocaleString() : 'Recent'}</p>
           </div>
         </div>
       `;
