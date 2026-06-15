@@ -393,27 +393,28 @@ function DashboardContent() {
                 onRetry={startAnalysis}
               />
 
-              {/* Scanning Effect Overlay */}
+              {/* Scanning Effect Overlay - Enhanced blue pulse */}
               {isLoading && (
                 <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#14B8A6]/10 to-transparent h-1/2 w-full animate-scan"></div>
-                  <div className="absolute inset-0 bg-[#14B8A6]/5 animate-pulse"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent-primary/20 to-transparent h-1/2 w-full animate-scan"></div>
+                  <div className="absolute inset-0 bg-accent-primary/10 animate-pulse"></div>
                 </div>
               )}
 
               {!geoJsonData && !isLoading && !error && (
-                <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40">
+                <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-accent-primary/10 backdrop-blur-[2px]">
                   {coordinates ? (
-                    <div className="text-center">
-                      <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
-                      <p className="text-accent-primary font-mono mt-4">
+                    <div className="text-center animate-in fade-in duration-500">
+                      <p className="text-[18px] font-[300] tracking-wide text-white/80">Monitoring Coordinates</p>
+                      <p className="text-accent-light font-mono mt-4 text-[20px] shadow-blue-glow px-16 py-4 bg-accent-primary/20 rounded-4">
                         {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
                       </p>
                     </div>
                   ) : (
-                    <div className="text-center opacity-40">
-                      <span className="material-symbols-outlined text-[64px] mb-16">map</span>
-                      <p>Initialize monitoring by selecting a location</p>
+                    <div className="text-center opacity-60">
+                      <span className="material-symbols-outlined text-[64px] mb-16 text-accent-primary animate-pulse">map</span>
+                      <p className="text-lg font-light tracking-widest uppercase">Initialize Surveillance</p>
+                      <p className="text-sm mt-8 opacity-70">Select a location to start real-time monitoring</p>
                     </div>
                   )}
                 </div>

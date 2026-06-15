@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import LocationSearchBar from '../dashboard/LocationSearchBar';
+import { useUser } from '@/context/UserContext';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [signupStep, setSignupStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,6 +34,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   useEffect(() => {
     if (!isOpen) {
       setEmail('');
+      setPhone('');
       setPassword('');
       setConfirmPassword('');
       setError(null);
@@ -41,6 +44,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       setLocationData(null);
     }
   }, [isOpen]);
+
+  // Handle pre-filled location from dashboard
+  useEffect(() => {
+    if (isOpen && mode === 'signup' && authModal.initialLocation) {
+      setLocationData(authModal.initialLocation);
+    }
+  }, [isOpen, mode, authModal.initialLocation]);
 
   useEffect(() => {
     setSignupStep(1);
@@ -95,7 +105,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             data: {
               location_name: locationData.name,
               latitude: locationData.lat,
-              longitude: locationData.lng
+              longitude: locationData.lng,
+              phone_number: phone
             }
           }
         });
@@ -112,6 +123,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             location_name: locationData.name,
             latitude: locationData.lat,
             longitude: locationData.lng,
+            phone_number: phone,
             updated_at: new Date().toISOString(),
           });
 
@@ -252,7 +264,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
               </>
             ) : (
               <div className="space-y-16">
-                <p className="text-xs text-text-muted uppercase tracking-widest font-bold">Select Regional Sector</p>
+                <p className="text-xs text-text-muted uppercase tracking-widest font-bold">Alert Contact Information</p>
+                <div className="carbon-input-container h-48 border border-white/20 rounded-4 focus-within:border-accent-primary flex items-center px-16 bg-sys-layer-01">
+                  <span className="material-symbols-outlined text-text-muted mr-8">smartphone</span>
+                  <input 
+                    type="tel" 
+                    placeholder="Phone Number (+94 ...)"
+                    className="carbon-input bg-transparent"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <p className="text-xs text-text-muted uppercase tracking-widest font-bold mt-24">Select Regional Sector</p>
                 <LocationSearchBar 
                   onLocationSelect={(coords, name) => setLocationData({ name, ...coords })}
                   isLoading={loading}

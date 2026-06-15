@@ -4,9 +4,10 @@ import React, { useEffect, useState } from 'react';
 import SubscriptionGuard from '@/components/auth/SubscriptionGuard';
 import { useUser } from '@/context/UserContext';
 import { apiFetch } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export default function AlertDashboard() {
-  const { user, profile, authModal, loading } = useUser();
+  const { user, profile, authModal, loading, refreshProfile } = useUser();
   const [backendStatus, setBackendStatus] = useState<'loading' | 'connected' | 'error'>('loading');
   
   useEffect(() => {
@@ -57,13 +58,23 @@ export default function AlertDashboard() {
     setSaveStatus('idle');
     
     try {
-      // Simulate API call or update Supabase profile
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Saving preferences:', { phone, email: notifEmail });
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          phone_number: phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      await refreshProfile();
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
-    } catch {
+    } catch (err) {
+      console.error('Error saving preferences:', err);
       setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     } finally {
       setIsUpdating(false);
     }
