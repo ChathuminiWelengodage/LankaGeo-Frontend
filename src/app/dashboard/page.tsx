@@ -57,7 +57,7 @@ function DashboardContent() {
       const data = await fetchLivePolygons();
       if (Array.isArray(data) && data.length > 0) {
         // Combine all geojson results into a single FeatureCollection
-        const allFeatures = data.flatMap((item: Record<string, unknown>) => {
+        const allFeatures = (data as Record<string, unknown>[]).flatMap((item) => {
           const geojson = (item.result || item.geojson || (item.type === 'FeatureCollection' ? item : null)) as Record<string, unknown> | null;
           if (geojson && Array.isArray(geojson.features)) return geojson.features;
           if (geojson && geojson.type === 'Feature') return [geojson];
