@@ -8,7 +8,7 @@ interface LiveFloodViewProps {
   isLoading: boolean;
   startAnalysis: () => void;
   coordinates: { lat: number; lng: number } | null;
-  locationName: string;
+  locationName?: string;
   error: string | null;
   selectedYear: number | null;
   currentData: unknown;
