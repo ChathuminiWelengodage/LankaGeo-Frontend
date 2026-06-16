@@ -11,7 +11,7 @@ export interface ImpactAssessmentProps {
 
 /**
  * ImpactAssessment Component
- * Renders "Row 2" of the results stats bar containing impact metrics and source attributions.
+ * Renders a high-fidelity 'Situation Report' for environmental impact.
  */
 const ImpactAssessment: React.FC<ImpactAssessmentProps> = ({
   estimated_population,
@@ -24,78 +24,96 @@ const ImpactAssessment: React.FC<ImpactAssessmentProps> = ({
 
   const metrics = [
     {
-      label: 'Estimated Population',
+      label: 'Population Exposure',
       value: formatNumber(estimated_population),
       unit: 'people',
-      color: 'text-accent-primary'
+      icon: 'groups',
+      color: 'text-accent-primary',
+      bg: 'bg-accent-primary/10',
+      description: 'Residents within detected flood zone.'
     },
     {
-      label: 'Buildings Exposed',
+      label: 'Structural Risk',
       value: formatNumber(buildings_exposed),
-      unit: 'structures',
-      color: 'text-ruby-alert'
+      unit: 'buildings',
+      icon: 'domain',
+      color: 'text-ruby-alert',
+      bg: 'bg-ruby-alert/10',
+      description: 'Critical and residential infrastructure.'
     },
     {
-      label: 'Road Length',
+      label: 'Logistics Impact',
       value: formatDecimal(road_length_km),
       unit: 'km',
-      color: 'text-magenta-glow'
+      icon: 'alt_route',
+      color: 'text-magenta-glow',
+      bg: 'bg-magenta-glow/10',
+      description: 'Affected transport network segments.'
     },
     {
-      label: 'Cropland Area',
+      label: 'Agricultural Area',
       value: formatDecimal(cropland_area_km2),
       unit: 'km²',
-      color: 'text-[#24a148]' // Green
+      icon: 'potted_plant',
+      color: 'text-[#24a148]',
+      bg: 'bg-[#24a148]/10',
+      description: 'Active cropland and primary vegetation.'
     }
   ];
 
   return (
-    <div className="w-full space-y-16">
-      <div className="flex items-center gap-12 px-4">
-        <div className="h-1 w-24 bg-accent-primary"></div>
-        <h2 className="text-[14px] font-bold tracking-widest uppercase text-text-primary">Impact Assessment</h2>
+    <div className="w-full space-y-24 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-16 px-4">
+        <div className="space-y-4">
+          <div className="flex items-center gap-8">
+            <div className="w-2 h-12 bg-accent-primary rounded-full"></div>
+            <h2 className="text-[14px] font-bold tracking-[0.1em] uppercase text-white">Impact Assessment</h2>
+          </div>
+          <p className="text-text-muted text-[11px] font-medium max-w-md">
+            Automated geospatial audit of regional exposure based on high-resolution SAR data.
+          </p>
+        </div>
       </div>
 
-      <div className="space-y-12">
-        {/* Metrics Row (Row 2) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-1 border border-white/10 bg-white/5 rounded-6 overflow-hidden">
-          {metrics.map((metric, index) => (
-            <div 
-              key={index} 
-              className="bg-sys-layer-01 p-16 flex flex-col justify-center transition-all hover:bg-sys-layer-02"
-            >
-              <p className="text-text-muted text-[10px] font-medium uppercase tracking-wider mb-8">
-                {metric.label}
-              </p>
-              <div className="flex items-baseline gap-6">
-                <span className={`text-[24px] font-mono font-bold leading-none ${metric.color}`}>
-                  {metric.value}
-                </span>
-                <span className="text-text-muted text-[11px] font-medium uppercase tracking-tight">
-                  {metric.unit}
-                </span>
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
+        {metrics.map((metric, index) => (
+          <div 
+            key={index} 
+            className="group card-standard !p-0 overflow-hidden relative"
+          >
+            {/* Hover Accent */}
+            <div className={`absolute top-0 left-0 w-full h-2 ${metric.bg} transition-all duration-300 group-hover:h-full group-hover:opacity-5`}></div>
+            
+            <div className="p-20 relative z-10">
+              <div className="flex items-center justify-between mb-16">
+                <div className={`w-32 h-32 rounded-6 ${metric.bg} flex items-center justify-center border border-white/5`}>
+                  <span className={`material-symbols-outlined text-[18px] ${metric.color}`}>{metric.icon}</span>
+                </div>
+                <span className="material-symbols-outlined text-white/30 text-[16px] group-hover:text-white transition-colors">info</span>
               </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Source Attributions */}
-        <div className="flex flex-wrap items-center gap-x-16 gap-y-8 px-4">
-          <div className="flex items-center gap-6">
-            <span className="w-2 h-2 rounded-full bg-text-muted"></span>
-            <span className="text-text-muted text-[10px] uppercase tracking-widest font-semibold">Sources:</span>
+              <div className="space-y-2">
+                <p className="text-white text-[10px] font-bold uppercase tracking-wider">
+                  {metric.label}
+                </p>
+                <div className="flex items-baseline gap-6">
+                  <span className="text-[28px] font-mono font-bold leading-none tracking-tight text-white">
+                    {metric.value}
+                  </span>
+                  <span className="text-white/70 text-[11px] font-bold uppercase tracking-tighter">
+                    {metric.unit}
+                  </span>
+                </div>
+              </div>
+
+              <p className="mt-12 text-[10px] text-white/80 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {metric.description}
+              </p>
+            </div>
           </div>
-          <div className="flex gap-12">
-            {['WorldPop', 'ESA WorldCover', 'OSM'].map((source) => (
-              <span 
-                key={source} 
-                className="text-text-muted text-[10px] hover:text-text-secondary transition-colors cursor-default border-b border-transparent hover:border-text-secondary/30 pb-1"
-              >
-                {source}
-              </span>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

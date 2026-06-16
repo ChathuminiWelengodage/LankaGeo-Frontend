@@ -17,6 +17,7 @@ interface AuthModalProps {
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const { authModal } = useUser();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [signupStep, setSignupStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');

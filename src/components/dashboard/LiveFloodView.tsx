@@ -11,8 +11,8 @@ interface LiveFloodViewProps {
   locationName: string;
   error: string | null;
   selectedYear: number | null;
-  currentData: any;
-  liveAnalysisResult?: any;
+  currentData: unknown;
+  liveAnalysisResult?: Record<string, unknown> | null;
 }
 
 export default function LiveFloodView({ 
