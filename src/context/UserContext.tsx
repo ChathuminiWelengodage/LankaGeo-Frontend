@@ -22,7 +22,8 @@ interface UserContextType {
   authModal: {
     isOpen: boolean;
     mode: 'login' | 'signup';
-    open: (mode?: 'login' | 'signup') => void;
+    initialLocation: { name: string; lat: number; lng: number } | null;
+    open: (mode?: 'login' | 'signup', location?: { name: string; lat: number; lng: number }) => void;
     close: () => void;
   };
   refreshProfile: () => Promise<void>;
@@ -37,6 +38,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+  const [initialLocation, setInitialLocation] = useState<{ name: string; lat: number; lng: number } | null>(null);
 
   const fetchProfile = async (userId: string) => {
     // Robust check for supabase instance methods
@@ -134,11 +136,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const authModal = {
     isOpen: isAuthModalOpen,
     mode: authModalMode,
-    open: (mode: 'login' | 'signup' = 'login') => {
+    initialLocation: initialLocation,
+    open: (mode: 'login' | 'signup' = 'login', location?: { name: string; lat: number; lng: number }) => {
       setAuthModalMode(mode);
+      if (location) {
+        setInitialLocation(location);
+      } else {
+        setInitialLocation(null);
+      }
       setIsAuthModalOpen(true);
     },
-    close: () => setIsAuthModalOpen(false)
+    close: () => {
+      setIsAuthModalOpen(false);
+      setInitialLocation(null);
+    }
   };
 
   return (

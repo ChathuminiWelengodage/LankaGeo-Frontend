@@ -48,7 +48,7 @@ function DashboardContent() {
   } | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [tileUrl, setTileUrl] = useState<string | undefined>(undefined);
-  const [liveAnalysisResult, setLiveAnalysisResult] = useState<any>(null);
+  const [liveAnalysisResult, setLiveAnalysisResult] = useState<Record<string, unknown> | null>(null);
   const [resultNotFoundError, setResultNotFoundError] = useState(false);
   const { viewMode, currentData, selectedYear, yearsData, fetchTrendData } = useHistorical();
 
@@ -57,9 +57,9 @@ function DashboardContent() {
       const data = await fetchLivePolygons();
       if (Array.isArray(data) && data.length > 0) {
         // Combine all geojson results into a single FeatureCollection
-        const allFeatures = data.flatMap((item: any) => {
-          const geojson = item.result || item.geojson || (item.type === 'FeatureCollection' ? item : null);
-          if (geojson && geojson.features) return geojson.features;
+        const allFeatures = (data as Record<string, unknown>[]).flatMap((item) => {
+          const geojson = (item.result || item.geojson || (item.type === 'FeatureCollection' ? item : null)) as Record<string, unknown> | null;
+          if (geojson && Array.isArray(geojson.features)) return geojson.features;
           if (geojson && geojson.type === 'Feature') return [geojson];
           // If the item itself is a feature
           if (item.type === 'Feature') return [item];
@@ -343,20 +343,28 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-sys-bg-base">
       {/* Header / Top Bar */}
-      <header className="border-b border-white/5 bg-sys-layer-01/50 sticky top-0 z-30">
-        <div className="max-w-screen-2xl mx-auto px-24 md:px-48 h-80 flex items-center justify-between gap-32">
-          <div className="flex items-center gap-16">
-            <div className="w-32 h-32 bg-gradient-to-br from-[#14B8A6] to-[#0D9488] rounded-8 flex items-center justify-center shadow-[0_0_10px_rgba(20,184,166,0.3)] border border-white/10 animate-pulse flex-shrink-0">
-              <span className="material-symbols-outlined text-white text-[18px]">satellite_alt</span>
+      <header className="border-b border-white/5 bg-sys-layer-01/95 backdrop-blur-md sticky top-64 z-30 shadow-sm">
+        <div className="max-w-screen-2xl mx-auto px-24 md:px-48 h-56 flex items-center justify-between gap-32">
+          {/* Brand/Status Section */}
+          <div className="flex items-center gap-16 min-w-max">
+            <div className="w-24 h-24 bg-accent-primary/10 rounded-4 flex items-center justify-center border border-accent-primary/20 flex-shrink-0">
+              <span className="material-symbols-outlined text-accent-primary text-[14px]">satellite_alt</span>
             </div>
-            <div>
-              <h1 className="text-[20px] font-bold tracking-tight text-white m-0 uppercase leading-none">Live Analysis</h1>
-              <p className="text-text-secondary text-[11px] m-0 font-mono mt-4 opacity-70">Precision SAR Surveillance Dashboard</p>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-8">
+                <h1 className="text-[13px] font-bold tracking-[0.05em] text-white uppercase leading-none">Live Surveillance</h1>
+                <div className="flex items-center gap-4 px-6 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                  <span className={`w-4 h-4 rounded-full ${error === 'offline' ? 'bg-ruby-alert' : 'bg-emerald-500 animate-pulse'}`}></span>
+                  <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider">{error === 'offline' ? 'Offline' : 'Active'}</span>
+                </div>
+              </div>
+              <p className="text-text-muted text-[10px] font-medium mt-2 tracking-wide">Precision SAR Network</p>
             </div>
           </div>
           
-          <div className="flex-grow max-w-xl">
-            <div className="interactive-glow rounded-4">
+          {/* Search Section - Centered & Integrated */}
+          <div className="flex-grow max-w-lg">
+            <div className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-4 transition-all duration-300">
               <LocationSearchBar 
                 onLocationSelect={handleLocationSelect}
                 isLoading={isLoading}
@@ -366,24 +374,29 @@ function DashboardContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-16">
+          {/* Quick Stats/Actions Section */}
+          <div className="hidden md:flex items-center gap-24">
             <div className="flex flex-col items-end">
-              <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">System Status</span>
-              <span className={`flex items-center gap-6 ${error === 'offline' ? 'text-ruby-alert' : 'text-[#24a148]'} text-[13px] font-bold`}>
-                <span className={`w-8 h-8 rounded-full ${error === 'offline' ? 'bg-ruby-alert' : 'bg-[#24a148] animate-pulse shadow-[0_0_8px_rgba(36,161,72,0.6)]'}`}></span>
-                {error === 'offline' ? 'Disconnected' : 'Operational'}
+              <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest">Target Sector</span>
+              <span className="text-[11px] text-white font-medium truncate max-w-[120px]">
+                {locationName || 'Unassigned'}
               </span>
+            </div>
+            <div className="h-24 w-1 bg-white/10"></div>
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest">Uptime</span>
+              <span className="text-[11px] text-accent-light font-mono font-bold">99.98%</span>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-screen-2xl mx-auto px-24 md:px-48 py-32 space-y-32">
+      <main className="max-w-screen-2xl mx-auto px-24 md:px-48 py-16 space-y-24">
         {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-32">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-24">
           {/* Map & Export Section */}
-          <div className="lg:col-span-8 space-y-32">
-            <div className="h-[640px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
+          <div className="lg:col-span-8 space-y-24">
+            <div className="h-[600px] bg-sys-layer-01 rounded-6 border border-white/5 overflow-hidden shadow-dual relative group transition-all duration-500 hover:border-[#14B8A6]/30">
               <FloodZoneMap center={coordinates} geoJsonData={geoJsonData} tileUrl={tileUrl} />
               
               <AnalysisLoadingOverlay 
@@ -393,27 +406,28 @@ function DashboardContent() {
                 onRetry={startAnalysis}
               />
 
-              {/* Scanning Effect Overlay */}
+              {/* Scanning Effect Overlay - Enhanced blue pulse */}
               {isLoading && (
                 <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#14B8A6]/10 to-transparent h-1/2 w-full animate-scan"></div>
-                  <div className="absolute inset-0 bg-[#14B8A6]/5 animate-pulse"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent-primary/20 to-transparent h-1/2 w-full animate-scan"></div>
+                  <div className="absolute inset-0 bg-accent-primary/10 animate-pulse"></div>
                 </div>
               )}
 
               {!geoJsonData && !isLoading && !error && (
-                <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-[#11131c]/40">
+                <div className="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none bg-accent-primary/10">
                   {coordinates ? (
-                    <div className="text-center">
-                      <p className="text-[18px] font-[300]">Monitoring Coordinates</p>
-                      <p className="text-accent-primary font-mono mt-4">
+                    <div className="text-center animate-in fade-in duration-500">
+                      <p className="text-[18px] font-[300] tracking-wide text-white/80">Monitoring Coordinates</p>
+                      <p className="text-accent-light font-mono mt-4 text-[20px] shadow-blue-glow px-16 py-4 bg-accent-primary/20 rounded-4">
                         {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
                       </p>
                     </div>
                   ) : (
-                    <div className="text-center opacity-40">
-                      <span className="material-symbols-outlined text-[64px] mb-16">map</span>
-                      <p>Initialize monitoring by selecting a location</p>
+                    <div className="text-center opacity-60">
+                      <span className="material-symbols-outlined text-[64px] mb-16 text-accent-primary animate-pulse">map</span>
+                      <p className="text-lg font-light tracking-widest uppercase">Initialize Surveillance</p>
+                      <p className="text-sm mt-8 opacity-70">Select a location to start real-time monitoring</p>
                     </div>
                   )}
                 </div>
