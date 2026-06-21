@@ -5,6 +5,7 @@ import { UserProvider } from "@/context/UserContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AuthModalWrapper from "@/components/auth/AuthModalWrapper";
+import React from "react";
 
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-ibm-plex-sans",
@@ -29,10 +30,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="antialiased">
+    <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+        <title></title>
       </head>
       <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} min-h-full font-sans bg-sys-bg-base flex flex-col`}>
         <UserProvider>

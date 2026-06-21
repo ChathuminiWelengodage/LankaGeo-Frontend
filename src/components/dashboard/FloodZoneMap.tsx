@@ -125,19 +125,19 @@ export default function FloodZoneMap({ center, geoJsonData, tileUrl: liveTileUrl
     });
   }, [heatmapActive]);
 
-  // Handle GeoJSON data updates - ONLY show polygons in LIVE mode
+  // Handle GeoJSON data updates - render polygons for both live and historical modes
   useEffect(() => {
     if (map) {
-      if (viewMode === 'live' && geoJsonData) {
+      if (geoJsonData) {
         addGeoJson(geoJsonData);
       } else {
-        // Clear polygons in historical mode
+        // Clear polygons when no GeoJSON data
         map.data.forEach((feature) => {
           map.data.remove(feature);
         });
       }
     }
-  }, [map, geoJsonData, addGeoJson, viewMode]);
+  }, [map, geoJsonData, addGeoJson]);
 
   // Handle Boundaries Toggle (map.data visibility)
   useEffect(() => {

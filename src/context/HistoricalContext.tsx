@@ -14,6 +14,8 @@ interface HistoricalContextType {
   isTrendLoading: boolean;
   trendError: 'timeout' | 'generic' | null;
   lastCoordinates: { lat: number; lng: number } | null;
+  historicalGeoJson: Record<string, any> | null;
+  isHistoricalPolygonsLoading: boolean;
   selectYear: (year: number | null) => void;
   setTransitioning: (val: boolean) => void;
   setViewMode: (mode: 'live' | 'historical') => void;
@@ -35,6 +37,8 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
   const [isTrendLoading, setIsTrendLoading] = useState(false);
   const [trendError, setTrendError] = useState<'timeout' | 'generic' | null>(null);
   const [lastCoordinates, setLastCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [historicalGeoJson, setHistoricalGeoJson] = useState<Record<string, any> | null>(null);
+  const [isHistoricalPolygonsLoading, setIsHistoricalPolygonsLoading] = useState(false);
 
   const fetchTrendData = useCallback(async (lat: number, lng: number) => {
     setLastCoordinates({ lat, lng });
@@ -92,9 +96,32 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
     return yearsData.find(d => d.year === selectedYear) || compositeData;
   }, [selectedYear, yearsData, compositeData, viewMode, historicalSubMode, heatmapUrl]);
 
-  const selectYear = (year: number | null) => {
+  const selectYear = async (year: number | null) => {
     if (isTransitioning) return;
     setSelectedYear(year);
+
+    if (year === null) {
+      setHistoricalGeoJson(null);
+      return;
+    }
+
+    setIsHistoricalPolygonsLoading(true);
+    try {
+      const data = await apiFetch(`/api/v1/analyze/polygons/year/${year}`);
+      if (Array.isArray(data)) {
+        setHistoricalGeoJson({
+          type: 'FeatureCollection',
+          features: data
+        });
+      } else {
+        setHistoricalGeoJson(null);
+      }
+    } catch (err) {
+      console.error(`Failed to fetch polygons for year ${year}:`, err);
+      setHistoricalGeoJson(null);
+    } finally {
+      setIsHistoricalPolygonsLoading(false);
+    }
   };
 
   const value = {
@@ -107,6 +134,8 @@ export function HistoricalProvider({ children }: { children: ReactNode }) {
     isTrendLoading,
     trendError,
     lastCoordinates,
+    historicalGeoJson,
+    isHistoricalPolygonsLoading,
     selectYear,
     setTransitioning,
     setViewMode,

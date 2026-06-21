@@ -38,7 +38,19 @@ export const useFloodData = (map: google.maps.Map | null) => {
 
       // Apply styling based on severity_level
       map.data.setStyle((feature) => {
-        const severity = feature.getProperty('severity_level') as SeverityLevel;
+        const severityRaw = feature.getProperty('severity_level');
+        
+        // Map string levels to integers if necessary
+        const severityMap: Record<string | number, SeverityLevel> = {
+          'seasonal': 1,
+          'moderate': 2,
+          'critical': 3,
+          1: 1,
+          2: 2,
+          3: 3
+        };
+
+        const severity = severityMap[severityRaw] || 1;
         const color = SEVERITY_COLORS[severity] || SEVERITY_COLORS[1];
 
         return {
