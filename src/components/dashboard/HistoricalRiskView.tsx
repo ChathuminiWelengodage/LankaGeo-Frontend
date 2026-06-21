@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
 import { useHistorical } from '@/context/HistoricalContext';
+
+
 import HistoricalYearStepper from './HistoricalYearStepper';
 import HistoricalStatsCard from './HistoricalStatsCard';
 import FFITrendChart from './FFITrendChart';
@@ -13,7 +14,8 @@ export default function HistoricalRiskView() {
     trendError, 
     fetchTrendData, 
     lastCoordinates, 
-    dismissTrendError 
+    dismissTrendError,
+    historicalGeoJson
   } = useHistorical();
 
   // Mock severity breakdown based on total zones
@@ -73,7 +75,7 @@ export default function HistoricalRiskView() {
            <p className="text-text-secondary text-[12px] font-mono mt-4">Compiling 5-year data</p>
         </div>
       )}
-
+      {/* Map moved to main view */}
       {/* Source Chip */}
       <div className="flex">
         <div className="px-12 py-6 bg-white/5 border border-white/10 rounded-full flex items-center gap-8">
