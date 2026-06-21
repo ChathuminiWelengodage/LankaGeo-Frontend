@@ -38,20 +38,20 @@ export const useFloodData = (map: google.maps.Map | null) => {
 
       // Apply styling based on severity_level
       map.data.setStyle((feature) => {
-        const severityRaw = feature.getProperty('severity_level');
-        
-        // Map string levels to integers if necessary
-        const severityMap: Record<string | number, SeverityLevel> = {
+        // Map raw severity values (string or number) to the numeric severity level used by SEVERITY_COLORS.
+        // We accept both textual labels (e.g., "seasonal") and numeric codes.
+        const severityMap: Record<string | number, number> = {
           'seasonal': 1,
           'moderate': 2,
           'critical': 3,
           1: 1,
           2: 2,
-          3: 3
+          3: 3,
         };
-
-        const severity = severityMap[severityRaw] || 1;
-        const color = SEVERITY_COLORS[severity] || SEVERITY_COLORS[1];
+        const severityRaw = feature.getProperty('severity_level');
+        // Resolve to a numeric severity level; default to 1 (low) if unknown.
+        const severity: number = severityMap[severityRaw as any] ?? 1;
+        const color = SEVERITY_COLORS[severity as keyof typeof SEVERITY_COLORS] ?? SEVERITY_COLORS[1];
 
         return {
           fillColor: color,
