@@ -150,7 +150,7 @@ export default function ExportPanel({
   const isShareDisabled = isLoading || !requestId || !!selectedYear;
 
   return (
-    <div className="card-standard relative overflow-hidden group/panel !p-4 !rounded-4">
+    <div className="bg-sys-layer-01 border border-white/5 rounded-4 shadow-dual relative overflow-hidden group/panel p-4">
       {/* Decorative scanning line effect */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-primary/40 to-transparent -translate-x-full group-hover/panel:translate-x-full transition-transform duration-1000"></div>
       
