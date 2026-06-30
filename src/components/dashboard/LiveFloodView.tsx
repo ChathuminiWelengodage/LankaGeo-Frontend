@@ -136,7 +136,7 @@ export default function LiveFloodView({
       </div>
 
       {/* Satellite Specs Card - Optimized Tile Sizes */}
-      <div className="card-standard flex-grow flex flex-col justify-between !hover:translate-y-0 relative overflow-hidden group/card !p-16">
+      <div className="bg-sys-layer-01 border border-white/5 rounded-6 shadow-dual flex-grow flex flex-col justify-between relative overflow-hidden group/card p-16">
         <div className="absolute top-0 right-0 w-80 h-80 bg-accent-primary/15 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none group-hover/card:bg-accent-primary/25 transition-colors duration-500"></div>
         
         <div className="relative z-10">
