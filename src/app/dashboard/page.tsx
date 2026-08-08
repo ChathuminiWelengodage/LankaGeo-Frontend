@@ -113,9 +113,9 @@ function DashboardContent() {
       const data = await apiFetch('/analyze/live', {
         method: 'POST',
         body: JSON.stringify({
-          latitude: targetCoords.lat,
-          longitude: targetCoords.lng,
-          location_name: targetName
+          lat: targetCoords.lat,
+          lng: targetCoords.lng,
+          radius_km: 5
         })
       });
 
@@ -123,7 +123,7 @@ function DashboardContent() {
       const id = data.request_id || data.id || data.requestId;
       if (id) {
         setRequestId(id);
-        setGeoJsonData(data.result || data);
+        setGeoJsonData(data.geojson || data.result || data);
         setLiveAnalysisResult(data);
         
         // Handle impact metrics if provided by API
@@ -141,14 +141,19 @@ function DashboardContent() {
         // If API succeeded but no ID, generate a local one for sharing capability
         const fallbackId = 'LOC-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         setRequestId(fallbackId);
-        setGeoJsonData(data.result || data);
+        setGeoJsonData(data.geojson || data.result || data);
         setLiveAnalysisResult(data);
       }
     } catch (err) {
       console.error('Analysis failed:', err);
       
       if (err instanceof ApiError) {
-        if (err.status === 422) {
+        if (err.status === 401) {
+          // Open auth modal if unauthorized
+          authModal.open('login', targetCoords ? { name: targetName, lat: targetCoords.lat, lng: targetCoords.lng } : undefined);
+          setIsLoading(false);
+          return;
+        } else if (err.status === 422) {
           setValidationError(err.message);
         } else if (err.status === 504) {
           // If in development or if we want to allow demo fallback for timeouts
@@ -217,7 +222,7 @@ function DashboardContent() {
         
         // Update state with fetched result
         setRequestId(resultId);
-        setGeoJsonData(data.result || data);
+        setGeoJsonData(data.geojson || data.result || data);
         setLiveAnalysisResult(data);
         
         if (data.impact) {
