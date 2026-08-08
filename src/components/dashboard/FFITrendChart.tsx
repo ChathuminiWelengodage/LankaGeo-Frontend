@@ -23,8 +23,10 @@ export default function FFITrendChart() {
 
       <div className="space-y-16">
         {yearsData.map((data) => {
-          const ratio = Math.min(Math.max(data.flood_frequency_index, 0), 1);
-          const colorClass = getSeverityColor(data.flood_frequency_index);
+          const rawFfi = data?.flood_frequency_index ?? ((data as any)?.value !== undefined ? ((data as any).value > 1 ? (data as any).value / 100 : (data as any).value) : 0);
+          const ffi = typeof rawFfi === 'number' ? rawFfi : 0;
+          const ratio = Math.min(Math.max(ffi, 0), 1);
+          const colorClass = getSeverityColor(ffi);
           const isSelected = selectedYear === data.year;
 
           return (
@@ -59,7 +61,7 @@ export default function FFITrendChart() {
                 <span className={`font-mono text-[13px] font-black transition-colors ${
                   isSelected ? 'text-white' : 'text-text-secondary group-hover:text-white'
                 }`}>
-                  {data.flood_frequency_index.toFixed(2)}
+                  {ffi.toFixed(2)}
                 </span>
               </div>
             </div>
