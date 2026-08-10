@@ -200,12 +200,6 @@ export default function ExportPanel({
           </div>
           
           <span className="text-white font-bold text-[10px] leading-none">PDF Report</span>
-          <span className="text-[7px] text-text-muted leading-none">{selectedYear ? 'Archive' : 'Live'}</span>
-          
-          <div className="mt-1 w-full flex items-center justify-between text-[7px] font-mono text-red-400 opacity-0 group-hover/btn:opacity-100 transition-opacity">
-            <span>GEN</span>
-            <span className="material-symbols-outlined text-[8px]">chevron_right</span>
-          </div>
         </button>
 
         {/* Data Export Card - Ultra Compact */}
@@ -223,12 +217,7 @@ export default function ExportPanel({
           </div>
           
           <span className="text-white font-bold text-[10px] leading-none">GeoJSON</span>
-          <span className="text-[7px] text-text-muted leading-none">Vector</span>
-
-          <div className="mt-1 w-full flex items-center justify-between text-[7px] font-mono text-blue-400 opacity-0 group-hover/btn:opacity-100 transition-opacity">
-            <span>EXTRACT</span>
-            <span className="material-symbols-outlined text-[8px]">chevron_right</span>
-          </div>
+          
         </button>
 
         {/* Share Link Card - Ultra Compact */}
@@ -252,12 +241,7 @@ export default function ExportPanel({
           <span className="text-white font-bold text-[10px] leading-none">
             {showShareConfirmation ? 'Copied!' : 'Share'}
           </span>
-          <span className="text-[7px] text-text-muted leading-none">{requestId ? 'Active' : 'N/A'}</span>
-
-          <div className="mt-1 w-full flex items-center justify-between text-[7px] font-mono text-[#14B8A6] opacity-0 group-hover/btn:opacity-100 transition-opacity">
-            <span>LINK</span>
-            <span className="material-symbols-outlined text-[8px]">chevron_right</span>
-          </div>
+         
         </button>
       </div>
 
