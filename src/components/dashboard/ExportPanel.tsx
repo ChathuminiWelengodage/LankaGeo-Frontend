@@ -247,35 +247,7 @@ export default function ExportPanel({
           </div>
 
         </div>
-
-        {/* Status Badge */}
-        <div
-          className={`
-            flex items-center gap-1.5
-            px-3 py-0.5
-            rounded-full
-            border
-            ${
-              selectedYear
-                ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
-                : 'bg-accent-primary/10 border-accent-primary/20 text-accent-primary'
-            }
-          `}
-        >
-          <span
-            className={`
-              w-2 h-2
-              rounded-full
-              ${
-                selectedYear
-                  ? 'bg-blue-400'
-                  : 'bg-accent-primary'
-              }
-              animate-pulse
-            `}
-          />
-        </div>
-      </div>
+     </div>
 
       {/* Export Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
