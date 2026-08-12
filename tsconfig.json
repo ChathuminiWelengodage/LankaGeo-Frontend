@@ -8,6 +8,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
+    "types": ["google.maps"],
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
