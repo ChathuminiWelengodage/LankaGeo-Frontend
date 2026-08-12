@@ -247,9 +247,7 @@ export default function ExportPanel({
           </div>
 
         </div>
-
-        
-      </div>
+     </div>
 
       {/* Export Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">

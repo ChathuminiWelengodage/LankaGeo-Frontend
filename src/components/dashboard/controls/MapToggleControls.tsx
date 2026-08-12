@@ -2,6 +2,15 @@
 
 import React from 'react';
 
+interface MapToggleControlsProps {
+  heatmapActive: boolean;
+  onHeatmapToggle: () => void;
+  boundariesActive: boolean;
+  onBoundariesToggle: () => void;
+  baseMapType: string;
+  onBaseMapToggle: () => void;
+}
+
 export default function MapToggleControls({
   heatmapActive,
   onHeatmapToggle,
@@ -17,8 +26,8 @@ export default function MapToggleControls({
       <button
         onClick={onHeatmapToggle}
         className={`w-48 h-48 rounded-8 flex items-center justify-center transition-all duration-300 shadow-lg border ${
-          heatmapActive 
-            ? 'bg-accent-primary border-accent-primary text-white' 
+          heatmapActive
+            ? 'bg-accent-primary border-accent-primary text-white'
             : 'bg-sys-layer-01 border-white/10 text-text-muted hover:text-white hover:border-white/20'
         }`}
         title="Toggle Heatmap"
@@ -32,8 +41,8 @@ export default function MapToggleControls({
       <button
         onClick={onBoundariesToggle}
         className={`w-48 h-48 rounded-8 flex items-center justify-center transition-all duration-300 shadow-lg border ${
-          boundariesActive 
-            ? 'bg-accent-primary border-accent-primary text-white' 
+          boundariesActive
+            ? 'bg-accent-primary border-accent-primary text-white'
             : 'bg-sys-layer-01 border-white/10 text-text-muted hover:text-white hover:border-white/20'
         }`}
         title="Toggle Boundaries"
@@ -46,21 +55,23 @@ export default function MapToggleControls({
       {/* Base Map Toggle */}
       <button
         onClick={onBaseMapToggle}
-        className={`w-48 h-48 rounded-8 flex items-center justify-center transition-all duration-300 shadow-lg border bg-sys-layer-01 border-white/10 text-text-muted hover:text-white hover:border-white/20 overflow-hidden relative group`}
+        className="w-48 h-48 rounded-8 flex items-center justify-center transition-all duration-300 shadow-lg border bg-sys-layer-01 border-white/10 text-text-muted hover:text-white hover:border-white/20 overflow-hidden relative group"
         title={`Switch to ${baseMapType === 'hybrid' ? 'Terrain' : 'Hybrid'} Map`}
       >
         <div className="flex flex-col items-center gap-2">
           <span className="material-symbols-outlined text-[20px]">
             {baseMapType === 'hybrid' ? 'satellite' : 'terrain'}
           </span>
+
           <span className="text-[8px] font-bold uppercase tracking-tighter">
             {baseMapType === 'hybrid' ? 'Hybr' : 'Terr'}
           </span>
         </div>
-        
+
         {/* Active indicator */}
         <div className="absolute inset-0 bg-accent-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       </button>
+
     </div>
   );
 }
