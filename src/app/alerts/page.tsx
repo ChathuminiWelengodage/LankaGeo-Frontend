@@ -38,6 +38,7 @@ export default function AlertDashboard() {
   const [notifEmail, setNotifEmail] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -77,6 +78,21 @@ export default function AlertDashboard() {
       setTimeout(() => setSaveStatus('idle'), 3000);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleSystemScan = async () => {
+    try {
+      setIsScanning(true);
+      const res = await apiFetch('/api/v1/alerts/scan', {
+        method: 'POST',
+      });
+      alert('System scan initiated. You will receive notifications if flooding is detected.');
+    } catch (err) {
+      console.error('Scan failed:', err);
+      alert('Failed to initiate system scan.');
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -169,7 +185,18 @@ export default function AlertDashboard() {
             </div>
             <div className="flex gap-16 mt-16 lg:mt-0">
               <button className="btn-secondary text-sm">Update Zones</button>
-              <button className="btn-primary text-sm">System Scan</button>
+              <button 
+                onClick={handleSystemScan}
+                disabled={isScanning || backendStatus !== 'connected'}
+                className="btn-primary text-sm disabled:opacity-50 flex items-center gap-8"
+              >
+                {isScanning ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                    Scanning...
+                  </>
+                ) : 'System Scan'}
+              </button>
             </div>
           </div>
 
@@ -297,18 +324,19 @@ function BenefitCard({ title, description, icon }: { title: string; description:
   );
 }
 
-function MonitorItem({ zone, status, risk, isPrimary }: { zone: string; status: string; risk: string; isPrimary?: boolean }) {
+function MonitorItem({ zone, status, risk, isPrimary }: { zone?: string | null; status: string; risk: string; isPrimary?: boolean }) {
   const isWarning = status === 'Warning';
+  const displayZone = zone || 'Unknown';
   return (
     <div className={`flex justify-between items-center p-24 rounded-6 border transition-all group ${isPrimary ? 'bg-accent-primary/5 border-accent-primary/30 ring-1 ring-accent-primary/20' : 'bg-white/5 border-white/5 hover:bg-white/[0.08]'}`}>
       <div className="space-y-4">
         <div className="flex items-center gap-8">
-          <div className="text-base font-bold text-white group-hover:text-accent-light transition-colors">{zone}</div>
+          <div className="text-base font-bold text-white group-hover:text-accent-light transition-colors">{displayZone}</div>
           {isPrimary && (
             <span className="text-[8px] bg-accent-primary text-white px-6 py-1 rounded-2 font-bold tracking-tighter uppercase">Primary</span>
           )}
         </div>
-        <div className="text-[10px] text-text-muted font-mono uppercase tracking-widest">Vector ID: LG-S1-{zone.substring(0,3).toUpperCase()}</div>
+        <div className="text-[10px] text-text-muted font-mono uppercase tracking-widest">Vector ID: LG-S1-{displayZone.substring(0,3).toUpperCase()}</div>
       </div>
       <div className="text-right space-y-4">
         <div className={`text-sm font-bold uppercase tracking-wider ${isWarning ? 'text-ruby-alert animate-pulse' : 'text-emerald-400'}`}>
