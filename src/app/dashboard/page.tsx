@@ -788,7 +788,7 @@ export default function DashboardPage() {
           </p>
 
           <div className="bg-black/20 p-12 rounded-4 text-left font-mono text-[12px] text-text-muted break-all">
-            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyBFmq6Y0qrGB3uOK05ONPWtkthsH6heEhE
+            NEXT_PUBLIC_GOOGLE_MAPS_API_Key=your_key
           </div>
         </div>
       </div>
