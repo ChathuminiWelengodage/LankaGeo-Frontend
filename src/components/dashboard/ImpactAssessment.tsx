@@ -20,7 +20,8 @@ const ImpactAssessment: React.FC<ImpactAssessmentProps> = ({
   cropland_area_km2,
 }) => {
   const formatNumber = (num: number) => num.toLocaleString();
-  const formatDecimal = (num: number) => num.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const formatDecimal = (num: number) =>
+    num.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const metrics = [
     {
@@ -62,22 +63,16 @@ const ImpactAssessment: React.FC<ImpactAssessmentProps> = ({
   ];
 
   return (
-    <div className="w-full space-y-24 animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-16 px-4">
-        <div className="space-y-4">
-          <div className="flex items-center gap-8">
-            <div className="w-2 h-12 bg-accent-primary rounded-full"></div>
-            <h2 className="text-[14px] font-bold tracking-[0.1em] uppercase text-white">Impact Assessment</h2>
-          </div>
-          <p className="text-text-muted text-[11px] font-medium max-w-md">
-            Automated geospatial audit of regional exposure based on high-resolution SAR data.
-          </p>
-        </div>
+      <div className="px-4">
+        <h2 className="text-[22px] sm:text-[26px] font-bold tracking-tight uppercase text-white">
+          Impact Assessment
+        </h2>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {metrics.map((metric, index) => (
           <div 
             key={index} 
@@ -86,19 +81,19 @@ const ImpactAssessment: React.FC<ImpactAssessmentProps> = ({
             {/* Hover Accent */}
             <div className={`absolute top-0 left-0 w-full h-2 ${metric.bg} transition-all duration-300 group-hover:h-full group-hover:opacity-5`}></div>
             
-            <div className="p-20 relative z-10">
-              <div className="flex items-center justify-between mb-16">
-                <div className={`w-32 h-32 rounded-6 ${metric.bg} flex items-center justify-center border border-white/5`}>
+            <div className="p-5 relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`w-8 h-8 rounded-6 ${metric.bg} flex items-center justify-center border border-white/5`}>
                   <span className={`material-symbols-outlined text-[18px] ${metric.color}`}>{metric.icon}</span>
                 </div>
                 <span className="material-symbols-outlined text-white/30 text-[16px] group-hover:text-white transition-colors">info</span>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <p className="text-white text-[10px] font-bold uppercase tracking-wider">
                   {metric.label}
                 </p>
-                <div className="flex items-baseline gap-6">
+                <div className="flex items-baseline gap-2">
                   <span className="text-[28px] font-mono font-bold leading-none tracking-tight text-white">
                     {metric.value}
                   </span>
@@ -108,7 +103,7 @@ const ImpactAssessment: React.FC<ImpactAssessmentProps> = ({
                 </div>
               </div>
 
-              <p className="mt-12 text-[10px] text-white/80 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <p className="mt-3 text-[10px] text-white/80 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 {metric.description}
               </p>
             </div>

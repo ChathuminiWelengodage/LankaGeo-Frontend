@@ -29,7 +29,7 @@ export default function HistoricalStatsCard() {
         <span className="text-[#14B8A6]">
           {selectedYear ? `${selectedYear} Metrics` : '5-Year Composite Metrics'}
         </span>
-        <span className="text-text-muted font-mono font-normal">RES-0.5m</span>
+        
       </h4>
       
       <div className="space-y-16">
@@ -83,9 +83,9 @@ export default function HistoricalStatsCard() {
       </div>
 
       <div className="pt-12 mt-12 border-t border-white/5">
-        <p className="text-text-muted text-[11px] leading-relaxed italic">
+        {/*<p className="text-text-muted text-[11px] leading-relaxed italic">
           &quot;{currentData.impact_summary}&quot;
-        </p>
+        </p>*/}
       </div>
     </div>
   );
