@@ -125,7 +125,7 @@ export default function LocationSearchBar({
               setIsDropdownOpen(false);
             }
           }}
-          placeholder="Search location in Sri Lanka..."
+          placeholder="Search location..."
           className={`carbon-input ${errorMessage ? 'border-ruby-alert/50' : ''}`}
           disabled={isLoading}
           onBlur={() => {
@@ -143,6 +143,20 @@ export default function LocationSearchBar({
             }
           }}
         />
+        {inputValue && !isLoading && (
+          <button 
+            type="button"
+            onClick={() => {
+              setInputValue('');
+              setSelectedPlace(null);
+              setPredictions([]);
+              if (onInputChange) onInputChange();
+            }}
+            className="mr-16 text-text-muted hover:text-white transition-colors flex items-center justify-center"
+          >
+            ✕
+          </button>
+        )}
         {isLoading && (
           <div className="mr-16">
             <div className="w-16 h-16 border-2 border-accent-primary border-t-transparent rounded-full animate-spin"></div>
