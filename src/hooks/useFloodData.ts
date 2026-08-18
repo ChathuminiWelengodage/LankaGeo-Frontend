@@ -36,6 +36,21 @@ export const useFloodData = (map: google.maps.Map | null) => {
     try {
       map.data.addGeoJson(data);
 
+      // Auto-fit map bounds to loaded polygons if features exist
+      if (typeof google !== 'undefined' && google.maps) {
+        const bounds = new google.maps.LatLngBounds();
+        let hasPoints = false;
+        map.data.forEach((feature) => {
+          feature.getGeometry()?.forEachLatLng((latLng) => {
+            bounds.extend(latLng);
+            hasPoints = true;
+          });
+        });
+        if (hasPoints && !bounds.isEmpty()) {
+          map.fitBounds(bounds);
+        }
+      }
+
       // Apply styling based on severity_level
       map.data.setStyle((feature) => {
         // Map raw severity values (string or number) to the numeric severity level used by SEVERITY_COLORS.
