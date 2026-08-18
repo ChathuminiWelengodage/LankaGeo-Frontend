@@ -71,27 +71,22 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Effect 1: Handle auth state changes purely for the user session
   useEffect(() => {
-    // Safety timeout: ensure loading state is cleared after 5 seconds
     const safetyTimeout = setTimeout(() => {
       setLoading(false);
     }, 5000);
 
-    // onAuthStateChange handles both the initial session check and subsequent changes.
-    // This is the single source of truth for the user's auth state.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const currentUser = session?.user ?? null;
-      
       setUser(currentUser);
       
-      if (currentUser) {
-        await fetchProfile(currentUser.id);
-      } else {
+      // If there's no user, we can safely clear profile and loading here
+      if (!currentUser) {
         setProfile(null);
+        setLoading(false);
+        clearTimeout(safetyTimeout);
       }
-      
-      setLoading(false);
-      clearTimeout(safetyTimeout);
     });
 
     return () => {
@@ -99,6 +94,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearTimeout(safetyTimeout);
     };
   }, []);
+
+  // Effect 2: Fetch profile when the user state changes (decoupled from auth events to prevent lock stealing)
+  useEffect(() => {
+    if (user) {
+      // We don't await here directly to avoid blocking, just fire and forget the promise
+      fetchProfile(user.id).finally(() => {
+        setLoading(false);
+      });
+    }
+  }, [user]);
 
   const refreshProfile = async () => {
     if (user) {

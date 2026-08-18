@@ -63,13 +63,14 @@ export default function ResetPassword() {
 
       if (error) throw error;
 
-      // Force sign out to clear the temporary recovery session.
-      // This ensures the user must manually log in with their new password.
-      await supabase.auth.signOut();
-
-      setMessage('Password has been reset successfully! Redirecting to login...');
+      // The password update successfully promotes the recovery session to a normal session.
+      // We no longer call signOut() here, as doing so immediately after updateUser() 
+      // creates a race condition with the UserContext onAuthStateChange listener (which 
+      // triggers fetchProfile and acquires the auth lock), resulting in a "Lock stolen" error.
+      
+      setMessage('Password has been reset successfully! Redirecting to dashboard...');
       setTimeout(() => {
-        router.push('/');
+        router.push('/dashboard');
       }, 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');

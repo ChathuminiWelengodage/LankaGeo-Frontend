@@ -58,9 +58,6 @@ export async function apiFetch(endpoint: string, options: RequestInit & { respon
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[API] Error ${response.status} from ${url}:`, errorData);
-    }
     throw new ApiError(
       errorData.message || `API request failed with status ${response.status}`,
       response.status,
